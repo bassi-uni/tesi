@@ -1,0 +1,37 @@
+{
+  "name": "interface",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@langchain/community": "^0.0.32",
+    "@langchain/core": "^0.1.32",
+    "@langchain/mistralai": "^0.0.7",
+    "@nextui-org/react": "^2.2.9",
+    "ai": "^2.2.36",
+    "better-sqlite3": "^9.4.3",
+    "framer-motion": "^11.0.5",
+    "langchain": "^0.1.21",
+    "langchain-gpt4all": "^0.0.74",
+    "lottie-react": "^2.4.0",
+    "next": "14.1.0",
+    "node-llama-cpp": "^2.8.7",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-icons": "^5.0.1",
+    "react-lottie": "^1.2.4",
+    "yarn": "^1.22.21"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.0.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.1.0",
+    "postcss": "^8",
+    "tailwindcss": "^3.3.0"
+  }
+}
