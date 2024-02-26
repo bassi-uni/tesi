@@ -1,54 +1,57 @@
 const sql = require('better-sqlite3');
 const db = sql('tests.db');
 
-const initialPrompt = [
-    {
-        system_prompt: "You are a helpful assistant, please answer this question being respectful. Provide always concise responses"
-    }
-]
+const initialPrompt ="You are a helpful assistant, please answer this question being respectful. Provide always concise responses"
+
 
 db.prepare(`
    CREATE TABLE IF NOT EXISTS system_prompt (
+    id INTEGER PRIMARY KEY,
+    prompt TEXT NOT NULL,
+    categoryID INTEGER,
+     isSelected BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (categoryID) REFERENCES category(id)
+);
+`).run();
+
+db.prepare(`
+ CREATE TABLE IF NOT EXISTS test (
+    id INTEGER PRIMARY KEY,
+    question TEXT NOT NULL,
+    answer TEXT NOT NULL,
+    pertinenceIndicator REAL CHECK(pertinenceIndicator >= 0 AND pertinenceIndicator <= 1),
+    promptID INTEGER NOT NULL,
+    FOREIGN KEY (promptID) REFERENCES system_prompt(id)
+);
+`).run();
+
+db.prepare(`
+    CREATE TABLE IF NOT EXISTS category (
         id INTEGER PRIMARY KEY,
-        system_prompt TEXT NOT NULL
-   );
-`).run();
-
-db.prepare(`
- CREATE TABLE IF NOT EXISTS tests (
-        question TEXT NOT NULL,
-        answer TEXT NOT NULL,
-        pertinence INTEGER NOT NULL,
-        system_prompt_id INTEGER,
-        FOREIGN KEY (system_prompt_id) REFERENCES system_prompt(id)
-    );
-`).run();
-
-db.prepare(`
- CREATE TABLE IF NOT EXISTS current_system_prompt (
-        system_prompt_id INTEGER,
-        FOREIGN KEY (system_prompt_id) REFERENCES system_prompt(id)
+        name TEXT NOT NULL
     );
 `).run();
 
 async function initData() {
-    const stmt = db.prepare(`
+
+    db.prepare(`
+        INSERT INTO category VALUES (
+            @id,
+            @name
+        )
+    `).run({id:1, name: "General"});
+
+
+    db.prepare(`
       INSERT INTO system_prompt VALUES (
          null,
-         @system_prompt
+         @prompt,
+         @categoryID,
+         @isSelected
       )
-   `);
+   `).run({prompt: initialPrompt, categoryID: 1, isSelected: 1});
 
-    for (const pr of initialPrompt){
-        stmt.run(pr);
-    }
 
-    const stmt1 = db.prepare(`
-      INSERT INTO current_system_prompt VALUES (
-         @system_prompt_id
-      )
-    `);
-    stmt1.run({system_prompt_id: 1});
 }
 
 (async()=>{
@@ -56,20 +59,20 @@ async function initData() {
     //await initData();
 
     const res = db.prepare(`
-    SELECT * FROM tests
-`).all();
+        SELECT * FROM test
+    `).all();
 
     console.log({res});
 
     const res1 = db.prepare(`
-    SELECT * FROM system_prompt
-`).all();
+        SELECT * FROM system_prompt
+    `).all();
 
     console.log({res1});
 
     const res2 = db.prepare(`
-    SELECT * FROM current_system_prompt
-`).all();
+        SELECT * FROM category
+    `).all();
 
     console.log({res2});
 })();

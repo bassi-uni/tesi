@@ -1,9 +1,9 @@
 import {getAllSystemPrompts, getCurrentSystemPrompt, newSystemPrompt} from "@/dbutils";
 
 export async function POST(req) {
-    const {system_prompt} = await req.json();
-    newSystemPrompt(system_prompt);
-    return Response.json({status: "ok", current: getCurrentSystemPrompt()})
+    const {system_prompt,category} = await req.json();
+    const newPromptID = newSystemPrompt(system_prompt,category);
+    return Response.json({status: "ok", current: getCurrentSystemPrompt(newPromptID)})
 }
 
 export async function GET(req) {

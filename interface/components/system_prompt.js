@@ -1,17 +1,21 @@
 import {Button, Input, Textarea} from "@nextui-org/react";
 import {useEffect, useState} from "react";
+import {NewCategory} from "@/components/new_category";
 
 export const SystemPrompt = ({exitPromptSettings})=>{
 
     const [prompt, setPrompt] = useState("");
     const [availablePrompts, setAvailablePrompts] = useState([])
+    const [categories, setCategories] = useState([]);
+    const [selectedCategoryIdx, setSelectedCategoryIdx] = useState(0);
+    const [creatingCategory, setCreatingCategory] = useState(false);
 
     const handleSubmit = e => {
         e.preventDefault();
         console.log("Ciao")
         fetch("api/sys_prompt", {
             method: "POST",
-            body: JSON.stringify({system_prompt: prompt}),
+            body: JSON.stringify({system_prompt: prompt, category: categories[selectedCategoryIdx].name}),
             headers: {
                 "Content-Type": "application/json"
             }
@@ -25,17 +29,42 @@ export const SystemPrompt = ({exitPromptSettings})=>{
             const json = await res.json();
             setAvailablePrompts(json);
         }
+        const fetchCategories = async ()=>{
+            const res = await fetch("api/category?withActivePrompt=0");
+            const json = await res.json();
+            setCategories(json.categories);
+        }
         fetchPrompts();
+        fetchCategories();
     },[])
 
-    const handlePromptClic = prompt =>
+    const handlePromptClick = prompt =>
         () => {
-            setPrompt(prompt.system_prompt);
+            setPrompt(prompt.prompt);
         }
+
+        const filteredPrompts = availablePrompts.filter(p => p.categoryID === categories[selectedCategoryIdx]?.id);
+    console.log({filteredPrompts})
+
+    const handleNewCategory = category => {
+        setCategories(prev => [...prev, {name: category}])
+        setCreatingCategory(false);
+        setSelectedCategoryIdx(categories.length);
+    }
 
     return (
         <div className={"h-[100vh] w-[100vw] flex flex-col justify-center items-center absolute z-50 bg-black/80 backdrop-blur gap-[100px] pt-[200px]"}>
             <h1 className={"text-white text-5xl"}>System Prompt Setting</h1>
+            <ul className={"flex flex-wrap w-1/2 gap-5"}>
+                {categories && [...categories.map((category, index)=>(
+                    <li key={index}
+                        onClick={()=>setSelectedCategoryIdx(index)}
+                        className={`p-2 ${index === selectedCategoryIdx ? "bg-primary text-black" :"bg-gray-700 text-white"} rounded-md hover:bg-primary hover:text-black cursor-pointer duration-150 flex items-center justify-center`}>{category.name}</li>
+                )),(creatingCategory && <NewCategory onNewCategory={handleNewCategory}/>),<li
+                        key={categories.length}
+                       onClick={()=>setCreatingCategory(true)}
+                       className={`text-white p-2 rounded-md hover:bg-primary hover:text-black cursor-pointer duration-150 flex items-center justify-center`}>+</li> ]}
+            </ul>
             <form className={"w-1/2 flex flex-col items-center justify-center gap-3"} onSubmit={handleSubmit}>
                 <Textarea label={"Enter Your System Prompt"} placeholder={"System prompt"} size={"lg"} className={"dark text-white"} onValueChange={setPrompt} value={prompt}/>
                 <div className={"w-full flex items-center gap-10"}>
@@ -44,8 +73,8 @@ export const SystemPrompt = ({exitPromptSettings})=>{
                 </div>
             </form>
             <ul className={"m-0 w-full h-full overflow-y-scroll flex flex-col items-center gap-5"}>
-                {availablePrompts.map((prompt, index)=>(
-                    <li key={index} className={"text-white p-2 bg-black rounded-md w-2/3 hover:bg-primary hover:text-black cursor-pointer duration-150"} onClick={handlePromptClic(prompt)}>{prompt.system_prompt}</li>
+                {categories.length >0 && filteredPrompts.map((prompt, index)=>(
+                    <li key={index} className={"text-white p-2 bg-gray-700 rounded-md w-2/3 hover:bg-primary hover:text-black cursor-pointer duration-150"} onClick={handlePromptClick(prompt)}>{prompt.prompt}</li>
                 ))}
             </ul>
         </div>

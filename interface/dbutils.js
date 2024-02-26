@@ -1,47 +1,84 @@
+
 const sql = require('better-sqlite3');
 const db = sql('tests.db');
 
 
 
-export const getCurrentSystemPrompt = () => {
-    const stmt = db.prepare(`
-      SELECT system_prompt FROM current_system_prompt INNER JOIN system_prompt ON current_system_prompt.system_prompt_id = system_prompt.id
-    `).get();
+export const getCurrentSystemPrompt = ({promptID}) => {
 
-    const {system_prompt} = stmt;
-    return system_prompt;
+
+    const stmt = db.prepare(`
+      SELECT prompt FROM system_prompt WHERE id = @promptID
+    `).get({promptID});
+
+    const {prompt} = stmt;
+    return prompt;
 }
 
-export const newSystemPrompt = (prompt) => {
-    //update the value in current_system_prompt table and add a new value in system_prompt table
-    const prompts = getAllSystemPrompts();
+export const newSystemPrompt = (prompt, category) => {
 
-    if(!prompts.some(p => p.system_prompt === prompt)){
+    const prompts = getAllSystemPrompts();
+    const categories = getAllCategories();
+
+   /**
+     * This block of code checks if the provided category exists in the categories array.
+     * If the category does not exist, it prepares a SQL statement to insert a new category into the 'category' table.
+     * The new category has a null ID (which will be auto-incremented by the database) and the provided category name.
+     * After preparing the statement, it executes the statement with the provided category as a parameter.
+     *
+     */
+    if(!categories.some(c => c.name === category)){
+        // Prepare SQL statement to insert a new category
+        createCategory(category)
+    }
+
+    const categoryID = db.prepare(`
+        SELECT id FROM category WHERE name = @category
+    `).get({category}).id;
+
+
+    if(!prompts.some(p => p.prompt === prompt && p.categoryID === categoryID)){
         const stmt = db.prepare(`
           INSERT INTO system_prompt VALUES (
              null,
-             @system_prompt
+             @prompt,
+             @categoryID,
+             null
+          
           )
         `);
-        stmt.run({system_prompt: prompt});
+        stmt.run({prompt, categoryID});
     }
 
-    const stmt1 = db.prepare(`
-      UPDATE current_system_prompt SET system_prompt_id = (SELECT id FROM system_prompt WHERE system_prompt = @prompt)
+    //set as selected the new prompt and unselect the previous one
+    const stmt = db.prepare(`
+      UPDATE system_prompt SET isSelected = FALSE WHERE categoryID = @categoryID
     `);
-    stmt1.run({prompt});
+    stmt.run({categoryID});
+
+    const stmt2 = db.prepare(`
+      UPDATE system_prompt SET isSelected = TRUE WHERE prompt = @prompt
+    `);
+    stmt2.run({prompt});
+
+    return db.prepare(`
+        SELECT id FROM system_prompt WHERE prompt = @prompt
+        `).get({prompt}).id;
+
+
 }
 
-export const addTestRecord = (question, answer, pertinence) => {
+export const addTestRecord = (question, answer, pertinenceIndicator, promptID) => {
     const stmt = db.prepare(`
-      INSERT INTO tests VALUES (
+      INSERT INTO test VALUES (
+           null,
          @question,
          @answer,
-         @pertinence,
-         (SELECT system_prompt_id FROM current_system_prompt)
+         @pertinenceIndicator,
+         @promptID
       )
     `);
-    stmt.run({question, answer, pertinence});
+    stmt.run({question, answer, pertinenceIndicator, promptID});
 }
 
 export const getAllSystemPrompts = () => {
@@ -50,6 +87,49 @@ export const getAllSystemPrompts = () => {
     `);
     return stmt.all();
 }
+
+export const getAllCategories = (withActivePrompt) => {
+    let stmt;
+    if(withActivePrompt){
+        stmt = db.prepare(`
+      SELECT category.*, system_prompt.prompt, system_prompt.id AS promptID
+      FROM category INNER JOIN system_prompt ON category.id = system_prompt.categoryID
+      WHERE system_prompt.isSelected = TRUE
+    `);
+    }else{
+        stmt = db.prepare(`
+            SELECT * FROM category
+    `);
+    }
+
+    return stmt.all();
+}
+
+export const getTestRecords = () => {
+    const stmt = db.prepare(`
+      SELECT * FROM tests
+    `);
+    return stmt.all();
+}
+
+export const createCategory = (name) => {
+    const stmt = db.prepare(`
+      INSERT INTO category VALUES (
+         null,
+         @name
+      )
+    `);
+    stmt.run({name});
+}
+
+export const getPromptsByCategory = (categoryID) => {
+    const stmt = db.prepare(`
+      SELECT * FROM system_prompt WHERE categoryID = @categoryID
+    `);
+    return stmt.all({categoryID});
+}
+
+
 
 //initData();
 
