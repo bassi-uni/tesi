@@ -1,20 +1,19 @@
 'use client'
 import {RiBrainLine} from "react-icons/ri";
-import {Button, Card, Input, Select, SelectItem, Slider, Textarea} from "@nextui-org/react";
-import {useCompletion} from "ai/react";
-import {useEffect, useState} from "react";
+import {Button, Select, SelectItem, Textarea} from "@nextui-org/react";
+import { useState} from "react";
 import {Cursor} from "@/components/cursor";
 import {SystemPrompt} from "@/components/system_prompt";
-import Lottie from "lottie-react";
-import * as AnimationData from "@/app/assets/animations/AI.json";
 import {fetchStreamData} from "@/utils/utils";
 import {Animation} from "@/components/Animation";
+import {PertinenceInput, pertinenceLabels, pertinenceTextColors} from "@/components/PertinenceInput";
+import { GoDependabot } from "react-icons/go";
 
 export default function Answer({categories}) {
 
 
 
-    const [pertinence, setPertinence] = useState(0);
+    const [pertinence, setPertinence] = useState(-1);
     const [settingPromptVisible, setSettingPromptVisible] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState("1");
 
@@ -62,20 +61,16 @@ export default function Answer({categories}) {
     const handleSelectionChange = (e) => {
         setSelectedCategory(e.target.value);
     };
-    console.log({selectedCategory})
+    console.log({pertinence, })
 
+    const pertinenceLabel = pertinence !== -1 ? <label className={`font-bold ${pertinenceTextColors[pertinence-1]}`}>{pertinenceLabels[pertinence-1]}</label> : <label>Please select a pertinence level</label>;
 
     return (
         <>
             {settingPromptVisible && <SystemPrompt exitPromptSettings={()=>{setSettingPromptVisible(false)}}/>}
-            <div className="min-w-[100vw] min-h-[100vh] flex flex-col items-center justify-center bg-gray-200 text-black font-DMSans        ">
+            <div className="min-w-[100vw] min-h-[100vh] flex flex-col items-center justify-center bg-gray-200 text-black font-DMSans py-10">
                 <main className={"w-2/3 h-full flex flex-col items-center  gap-[30px] "}>
                     <h1 className={"text-6xl flex"}>Pertinence Analysis  <RiBrainLine /> </h1>
-
-
-                    <div className={"p-10 z-40 rounded-2xl w-1/2 flex justify-center items-center text-xl font-bold text-center "}>
-                        Tell Us How Much Answer Match With Your Question!
-                    </div>
                     <div className={"flex flex-col-reverse gap-7 items-center justify-around  w-full"}>
 
                         <form onSubmit={handleSubmit} className={"m-0 h-full w-full font-AnonymusPro"}>
@@ -87,31 +82,36 @@ export default function Answer({categories}) {
                             }} size={"lg"} onValueChange={setInput} value={input} endContent={<Button type={"submit"} color={"primary"}>Submit</Button>} >Question will be here</Textarea>
                         </form>
 
-                        <Select items={categories} label={"select a category"} selectedKeys={[selectedCategory]} onChange={handleSelectionChange}>
-
-                            {(c) => (<SelectItem key={c.promptID} value={c.name} >{c.name}</SelectItem>)}
+                        <Select items={categories} label={"select a category"} selectedKeys={[selectedCategory]} onChange={handleSelectionChange} renderValue={([item]) => {
+                            return item.data.name
+                        }} >
+                            {(c) => (<SelectItem  key={c.promptID} value={c.name} clsssNames={{
+                                base: "text-black",
+                                selected: "text-black",
+                                wrapper: "text-black"
+                            }} ><p className={"text-black"}>{c.name}</p></SelectItem>)}
 
                         </Select>
 
 
-                        <div className={"flex flex-col gap-10 w-[300px] h-full px-10 pb-10 "}>
-                            <div className={"flex gap-10 w-full justify-center items-center text-6xl"}>
+                        <div className={"flex flex-col gap-10 h-full px-10 pb-10 "}>
+                            <div className={"flex gap-10 w-[300px] justify-center items-center text-6xl self-center"}>
                                 <Animation />
                             </div>
-                            <Slider maxValue={1} minValue={0} step={0.01} label={"Percentage"} formatOptions={{
-                                style: "percent",
-                            }} onChange={(val)=>{setPertinence(val[0])}} isDisabled={!sliderEnabled} size={"lg"}/>
+                            {!isLoading && completion.trim() !== "" && <h1 className={"text-2xl font-bold"}>How would you rate the pertinence between question and answer?</h1>}
+                            <PertinenceInput onPertinenceChange={setPertinence} isEnabled={sliderEnabled} />
+                            {!isLoading && completion.trim() !== "" && pertinenceLabel}
                         </div>
-                        <div className={"h-full max-h-[400px] w-full flex flex-col items-center font-AnonymusPro overflow-y-scroll"}>
+                        <div className={"h-full max-h-[400px] w-full flex flex-col gap-10 items-center font-AnonymusPro overflow-y-scroll"}>
                             <h1 className={"font-bold"}>Answer will be here:</h1>
-                            <div className={"flex w-full h-full"}>
-                                <label>AI: </label><p>{completion}{isLoading && <Cursor/>}</p>
+                            <div className={"flex w-full h-full items-center gap-4"}>
+                                <GoDependabot className={"text-3xl"} /><p className={"pt-1"}>{completion}{isLoading && <Cursor/>}</p>
                             </div>
 
                         </div>
                     </div>
                     <div className={"flex justify-center w-full gap-3"}>
-                        <Button color={"primary"} onClick={handleNextQuestionClick} isDisabled={!sliderEnabled}>NEXT QUESTION</Button>
+                        <Button color={"primary"} onClick={handleNextQuestionClick} isDisabled={pertinence === -1}>SUBMIT</Button>
                         <Button onClick={()=>{setSettingPromptVisible(true)}}>Set system prompt</Button>
                     </div>
                 </main>

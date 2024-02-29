@@ -53,7 +53,7 @@ export const SystemPrompt = ({exitPromptSettings})=>{
     }
 
     return (
-        <div className={"h-[100vh] w-[100vw] flex flex-col justify-center items-center absolute z-50 bg-black/80 backdrop-blur gap-[100px] pt-[200px]"}>
+        <div className={"h-full w-[100vw] flex flex-col justify-center items-center fixed top-0 left-0 z-50 bg-black/90 backdrop-blur gap-[100px] pt-[200px]"}>
             <h1 className={"text-white text-5xl"}>System Prompt Setting</h1>
             <ul className={"flex flex-wrap w-1/2 gap-5"}>
                 {categories && [...categories.map((category, index)=>(
@@ -68,8 +68,8 @@ export const SystemPrompt = ({exitPromptSettings})=>{
             <form className={"w-1/2 flex flex-col items-center justify-center gap-3"} onSubmit={handleSubmit}>
                 <Textarea label={"Enter Your System Prompt"} placeholder={"System prompt"} size={"lg"} className={"dark text-white"} onValueChange={setPrompt} value={prompt}/>
                 <div className={"w-full flex items-center gap-10"}>
-                    <Button size={"lg"} color={"danger"} onClick={exitPromptSettings}>Exit</Button>
-                    <Button size={"lg"} color={"primary"}  type={"submit"}>Submit Prompt</Button>
+                    <Button size={"lg"} color={"danger"} className={"text-black"} onClick={exitPromptSettings}>Exit</Button>
+                    <Button size={"lg"} color={"primary"} className={"text-black"} type={"submit"}>Submit Prompt</Button>
                 </div>
             </form>
             <ul className={"m-0 w-full h-full overflow-y-scroll flex flex-col items-center gap-5"}>

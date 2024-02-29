@@ -4,7 +4,7 @@ const db = sql('tests.db');
 const initialPrompt ="You are a helpful assistant, please answer this question being respectful. Provide always concise responses"
 
 
-db.prepare(`
+/*db.prepare(`
    CREATE TABLE IF NOT EXISTS system_prompt (
     id INTEGER PRIMARY KEY,
     prompt TEXT NOT NULL,
@@ -19,7 +19,7 @@ db.prepare(`
     id INTEGER PRIMARY KEY,
     question TEXT NOT NULL,
     answer TEXT NOT NULL,
-    pertinenceIndicator REAL CHECK(pertinenceIndicator >= 0 AND pertinenceIndicator <= 1),
+    pertinenceIndicator INTEGER,
     promptID INTEGER NOT NULL,
     FOREIGN KEY (promptID) REFERENCES system_prompt(id)
 );
@@ -30,7 +30,7 @@ db.prepare(`
         id INTEGER PRIMARY KEY,
         name TEXT NOT NULL
     );
-`).run();
+`).run();*/
 
 async function initData() {
 
@@ -58,6 +58,29 @@ async function initData() {
 
     //await initData();
 
+
+
+    //delete all the content int test table and modify its pertinenceIndicator to be INTEGER with no CHECKS
+    db.prepare(`
+        DELETE FROM test
+    `).run();
+
+    db.prepare(`
+        ALTER TABLE test
+        RENAME TO test_old
+    `).run();
+
+    db.prepare(`
+        CREATE TABLE test (
+            id INTEGER PRIMARY KEY,
+            question TEXT NOT NULL,
+            answer TEXT NOT NULL,
+            pertinenceIndicator INTEGER,
+            promptID INTEGER NOT NULL,
+            FOREIGN KEY (promptID) REFERENCES system_prompt(id)
+        )
+    `).run();
+
     const res = db.prepare(`
         SELECT * FROM test
     `).all();
@@ -75,4 +98,5 @@ async function initData() {
     `).all();
 
     console.log({res2});
+
 })();

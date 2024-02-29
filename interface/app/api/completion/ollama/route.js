@@ -39,6 +39,7 @@ export async function POST(req) {
     });
 
     const outputParser = new BytesOutputParser();
+
 /*
     const toEnglishTranslationChain = RunnableSequence.from([
         translationPrompt,

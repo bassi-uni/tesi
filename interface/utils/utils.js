@@ -1,5 +1,6 @@
 export async function fetchStreamData(url, requestData, onChunkReceived, onStart, onEnd) {
     // Make a POST request to the server
+    onStart();
     const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -19,7 +20,7 @@ export async function fetchStreamData(url, requestData, onChunkReceived, onStart
     let accumulatedChunks = '';
     return new ReadableStream({
         async start(controller) {
-            onStart();
+
             while (true) {
                 const { done, value } = await reader.read();
 
