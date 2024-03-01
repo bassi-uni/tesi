@@ -53,7 +53,7 @@ export const SystemPrompt = ({exitPromptSettings})=>{
     }
 
     return (
-        <div className={"h-full w-[100vw] flex flex-col justify-center items-center fixed top-0 left-0 z-50 bg-black/90 backdrop-blur gap-[100px] pt-[200px]"}>
+        <div className={"h-full w-[100vw] flex flex-col justify-center items-center fixed top-0 left-0 z-50 bg-black/70 backdrop-blur-xl gap-[100px] pt-[200px]"}>
             <h1 className={"text-white text-5xl"}>System Prompt Setting</h1>
             <ul className={"flex flex-wrap w-1/2 gap-5"}>
                 {categories && [...categories.map((category, index)=>(

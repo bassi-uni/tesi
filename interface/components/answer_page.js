@@ -8,6 +8,8 @@ import {fetchStreamData} from "@/utils/utils";
 import {Animation} from "@/components/Animation";
 import {PertinenceInput, pertinenceLabels, pertinenceTextColors} from "@/components/PertinenceInput";
 import { GoDependabot } from "react-icons/go";
+import { IoReloadCircleSharp } from "react-icons/io5";
+
 
 export default function Answer({categories}) {
 
@@ -22,16 +24,19 @@ export default function Answer({categories}) {
     const [input, setInput] = useState("");
     const [completion, setCompletion] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        setCompletion("");
         fetchStreamData("api/completion/ollama", {prompt: input, category: selectedCategory}, (entireResponse) => {
+            console.log("CHUNK ARRIVED")
             setCompletion(entireResponse);
         } , ()=>{
             setIsLoading(true)
         } , ()=>{
             setIsLoading(false)
-        });
+        }).catch(setError);
     }
 
 
@@ -105,13 +110,16 @@ export default function Answer({categories}) {
                         <div className={"h-full max-h-[400px] w-full flex flex-col gap-10 items-center font-AnonymusPro overflow-y-scroll"}>
                             <h1 className={"font-bold"}>Answer will be here:</h1>
                             <div className={"flex w-full h-full items-center gap-4"}>
-                                <GoDependabot className={"text-3xl"} /><p className={"pt-1"}>{completion}{isLoading && <Cursor/>}</p>
+                                <GoDependabot className={"text-3xl shrink-0"} /> <p className={"pt-1"}>{completion}{isLoading && <Cursor/>}</p>
                             </div>
 
                         </div>
                     </div>
                     <div className={"flex justify-center w-full gap-3"}>
-                        <Button color={"primary"} onClick={handleNextQuestionClick} isDisabled={pertinence === -1}>SUBMIT</Button>
+                        {!error&& <Button color={"primary"} onClick={handleNextQuestionClick}
+                                 isDisabled={pertinence === -1}>SUBMIT</Button>}
+                        {error&& <Button color={"danger"} onClick={handleNextQuestionClick}
+                            isDisabled={pertinence === -1} isIconOnly endContent={<IoReloadCircleSharp /> }></Button>}
                         <Button onClick={()=>{setSettingPromptVisible(true)}}>Set system prompt</Button>
                     </div>
                 </main>

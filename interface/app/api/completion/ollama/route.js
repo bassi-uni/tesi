@@ -1,6 +1,6 @@
 import { StreamingTextResponse} from "ai";
 import { Ollama } from "@langchain/community/llms/ollama";
-import {PromptTemplate} from "@langchain/core/prompts";
+import {PromptTemplate, ChatPromptTemplate, FewShotChatMessagePromptTemplate} from "@langchain/core/prompts";
 import {BytesOutputParser, StringOutputParser} from "@langchain/core/output_parsers";
 import {getCurrentSystemPrompt} from "@/dbutils";
 import {RunnableSequence, RunnablePassthrough} from "@langchain/core/runnables";
@@ -11,12 +11,76 @@ import {StructuredOutputParser} from "langchain/output_parsers";
 const TEMPLATE_FN = (sp)=> `<<SYS>>${sp}<</SYS>>
 
 [INST]User: {input}
-AI: 
+AI: <RESPONSE>
 [/INST]
 
 `;
 
 
+function initRetranslationChain(model) {
+    const outputParser = new BytesOutputParser();
+
+    const retranslationPrompt = ChatPromptTemplate.fromMessages([
+        ["system", "Given a sentence by User, translate that sentence into {language}, do not add any other extra information or characters"],
+        ["user", "Translate this sentence into English:\n'Ciao, come stai?'"],
+        ["ai", "Hello, how are you?"],
+        ["user", "Translate this sentence into Italian:\n'Je suis un homme'"],
+        ["ai", "Sono un uomo"],
+        ["user", "Translate this sentence into {language}:\n'{input}'"],
+    ])
+
+    return RunnableSequence.from([
+        retranslationPrompt,
+        (prompt) => {
+            console.log({prompt});
+            return prompt;
+        },
+        model,
+        outputParser,
+    ])
+}
+
+function initTranslationChain(model) {
+    const parser = StructuredOutputParser.fromNamesAndDescriptions({
+        recognized_language: "input's language that you have recognized",
+        translation: "the translation of the user input into the target language",
+    });
+    const formatInstructions = parser.getFormatInstructions();
+
+    const translationSystemPrompt = `Given a sentence by User, translate that sentence into {language}\n{format_instructions}\n`;
+    const translationTemplate = TEMPLATE_FN(translationSystemPrompt);
+    const translationPrompt = PromptTemplate.fromTemplate(translationTemplate);
+
+
+    const translationChain = RunnableSequence.from([
+        translationPrompt,
+        (prompt) => {
+            console.log({prompt});
+            return prompt;
+        },
+        model,
+        parser,
+    ])
+
+    return {translationChain,formatInstructions};
+}
+
+function initResponseChain(category, model) {
+    const system_prompt = getCurrentSystemPrompt({promptID: category});
+
+
+    const template = TEMPLATE_FN(system_prompt);
+
+
+    const PROMPT = PromptTemplate.fromTemplate(template);
+
+    return  RunnableSequence.from([
+        PROMPT,
+        model,
+        new StringOutputParser(),
+
+    ])
+}
 
 export async function POST(req) {
     // Extract the `prompt` from the body of the request
@@ -24,14 +88,6 @@ export async function POST(req) {
 
     console.log({category})
 
-    const system_prompt = getCurrentSystemPrompt({promptID: category});
-
-
-    const template = TEMPLATE_FN(system_prompt);
-
-    console.log({template});
-
-    const PROMPT = PromptTemplate.fromTemplate(template);
 
 
     const model = new Ollama({
@@ -39,82 +95,39 @@ export async function POST(req) {
         model: "openchat:latest", // Default value
     });
 
-    const outputParser = new BytesOutputParser();
-    const parser = StructuredOutputParser.fromNamesAndDescriptions({
-        recognized_language: "input's language that you have recognized",
-        translation: "the translation of the user input into the target language",
-    });
-    const translationSystemPrompt = `Given a sentence by User, translate that sentence into {language}\n{format_instructions}\n`;
-    const translationTemplate = TEMPLATE_FN(translationSystemPrompt);
-    const translationPrompt = PromptTemplate.fromTemplate(translationTemplate);
 
 
+    const {translationChain,formatInstructions} = initTranslationChain(model);
+    const responseChain = initResponseChain(category, model);
+    const retranslationChain = initRetranslationChain(model);
 
-    const translationChain = RunnableSequence.from([
-        translationPrompt,
-        model,
-        parser,
-    ])
 
-    const responseChain = RunnableSequence.from([
-        PROMPT,
-        model,
-        new StringOutputParser(),
-
-    ])
-
-    const italianTranslationChain = RunnableSequence.from([
-        translationPrompt,
-        (prompt) => {
-            console.log({prompt})
-            return prompt
-        },
-        model,
-        (res) => {
-            console.log({resItalian: res})
-            try{
-                return JSON.parse(res);
-            }catch(e){
-                return res
-            }
-        },
-
-    ])
 
 
     const chain = RunnableSequence.from([
-        translationChain,
+        {input: translationChain,original_input: new RunnablePassthrough()},
 
         {
-            input: (res)=>res.translation,
-            recognized_language:(res)=>res.recognized_language ,
-            original_input: new RunnablePassthrough()
+            input: (res) => res.input.translation,
+            original_input: ({original_input, input})=> ({
+                ... original_input, recognized_language: input.recognized_language
+            }),
         },
 
         {
-            input: responseChain ,
+            input: responseChain,
             language: ({original_input}) => {
-                console.log({original_input})
-                return original_input.recognized_language
+                return original_input.recognized_language;
             },
-            format_instructions: (res)=>parser.getFormatInstructions(),
-        },
 
-        italianTranslationChain,
-
-        (res) => {
-            if(res.translation){
-                return res.translation
-            }
-            return res
         },
-        outputParser
-    ])
+        retranslationChain,
+    ]);
 
     const stream = await chain.stream({
         input: prompt,
         language: "English",
-        format_instructions: parser.getFormatInstructions()
+        format_instructions: formatInstructions
     });
 
     return new StreamingTextResponse(stream);

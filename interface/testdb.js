@@ -4,7 +4,7 @@ const db = sql('tests.db');
 const initialPrompt ="You are a helpful assistant, please answer this question being respectful. Provide always concise responses"
 
 
-/*db.prepare(`
+db.prepare(`
    CREATE TABLE IF NOT EXISTS system_prompt (
     id INTEGER PRIMARY KEY,
     prompt TEXT NOT NULL,
@@ -30,7 +30,7 @@ db.prepare(`
         id INTEGER PRIMARY KEY,
         name TEXT NOT NULL
     );
-`).run();*/
+`).run();
 
 async function initData() {
 
@@ -56,7 +56,7 @@ async function initData() {
 
 (async()=>{
 
-    //await initData();
+    await initData();
 
 
 
