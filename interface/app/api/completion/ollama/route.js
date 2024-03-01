@@ -4,6 +4,10 @@ import {PromptTemplate} from "@langchain/core/prompts";
 import {BytesOutputParser, StringOutputParser} from "@langchain/core/output_parsers";
 import {getCurrentSystemPrompt} from "@/dbutils";
 import {RunnableSequence, RunnablePassthrough} from "@langchain/core/runnables";
+import {StructuredOutputParser} from "langchain/output_parsers";
+
+
+
 const TEMPLATE_FN = (sp)=> `<<SYS>>${sp}<</SYS>>
 
 [INST]User: {input}
@@ -12,9 +16,6 @@ AI:
 
 `;
 
-const translationSystemPrompt = `Given a sentence by User, translate that sentence into {language}`;
-const translationTemplate = TEMPLATE_FN(translationSystemPrompt);
-const translationPrompt = PromptTemplate.fromTemplate(`Translate to {language} this sentence: "{input}"`);
 
 
 export async function POST(req) {
@@ -39,45 +40,81 @@ export async function POST(req) {
     });
 
     const outputParser = new BytesOutputParser();
+    const parser = StructuredOutputParser.fromNamesAndDescriptions({
+        recognized_language: "input's language that you have recognized",
+        translation: "the translation of the user input into the target language",
+    });
+    const translationSystemPrompt = `Given a sentence by User, translate that sentence into {language}\n{format_instructions}\n`;
+    const translationTemplate = TEMPLATE_FN(translationSystemPrompt);
+    const translationPrompt = PromptTemplate.fromTemplate(translationTemplate);
 
-/*
-    const toEnglishTranslationChain = RunnableSequence.from([
+
+
+    const translationChain = RunnableSequence.from([
         translationPrompt,
         model,
-        new StringOutputParser(),
+        parser,
     ])
 
     const responseChain = RunnableSequence.from([
         PROMPT,
         model,
-        new StringOutputParser()
+        new StringOutputParser(),
+
     ])
 
-    const toItalianTranslationChain = RunnableSequence.from([
+    const italianTranslationChain = RunnableSequence.from([
         translationPrompt,
+        (prompt) => {
+            console.log({prompt})
+            return prompt
+        },
         model,
-        outputParser,
+        (res) => {
+            console.log({resItalian: res})
+            try{
+                return JSON.parse(res);
+            }catch(e){
+                return res
+            }
+        },
+
     ])
+
 
     const chain = RunnableSequence.from([
+        translationChain,
 
-        {input: toEnglishTranslationChain, original_input: new RunnablePassthrough()},
+        {
+            input: (res)=>res.translation,
+            recognized_language:(res)=>res.recognized_language ,
+            original_input: new RunnablePassthrough()
+        },
 
-        {input: responseChain , language: ({original_input}) => original_input.original_language},
+        {
+            input: responseChain ,
+            language: ({original_input}) => {
+                console.log({original_input})
+                return original_input.recognized_language
+            },
+            format_instructions: (res)=>parser.getFormatInstructions(),
+        },
 
-        toItalianTranslationChain,
+        italianTranslationChain,
+
+        (res) => {
+            if(res.translation){
+                return res.translation
+            }
+            return res
+        },
+        outputParser
     ])
 
     const stream = await chain.stream({
-        language: 'English',
-        original_language: 'Italian',
-        input: prompt
-    });
-*/
-    const chain = PROMPT.pipe(model).pipe(outputParser);
-
-    const stream = await chain.stream({
-        input: prompt
+        input: prompt,
+        language: "English",
+        format_instructions: parser.getFormatInstructions()
     });
 
     return new StreamingTextResponse(stream);
