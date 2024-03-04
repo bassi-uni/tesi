@@ -1,11 +1,11 @@
-import {addTestRecord} from "@/dbutils";
+import {addTestRecord} from "@/utils/dbutils";
 
 export async function POST(req){
-    const {question, answer, pertinence, promptID} = await req.json();
+    const {question, answer, pertinence, promptID, loadingTime, model} = await req.json();
 
-    console.log({question, answer, pertinence, promptID})
+    console.log({question, answer, pertinenceIndicator:pertinence, promptID, loadingTime, model})
 
-    addTestRecord(question, answer, pertinence, promptID);
+    addTestRecord({question, answer, pertinence, promptID, loadingTime, model});
 
     return Response.json({status: "ok"})
 

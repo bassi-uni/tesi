@@ -2,16 +2,17 @@ import { StreamingTextResponse} from "ai";
 import { Ollama } from "@langchain/community/llms/ollama";
 import {PromptTemplate, ChatPromptTemplate, FewShotChatMessagePromptTemplate} from "@langchain/core/prompts";
 import {BytesOutputParser, StringOutputParser} from "@langchain/core/output_parsers";
-import {getCurrentSystemPrompt} from "@/dbutils";
+import {getCurrentSystemPrompt} from "@/utils/dbutils";
 import {RunnableSequence, RunnablePassthrough} from "@langchain/core/runnables";
 import {StructuredOutputParser} from "langchain/output_parsers";
+import {models} from "@/utils/constants";
 
 
 
 const TEMPLATE_FN = (sp)=> `<<SYS>>${sp}<</SYS>>
 
 [INST]User: {input}
-AI: <RESPONSE>
+AI: 
 [/INST]
 
 `;
@@ -31,10 +32,6 @@ function initRetranslationChain(model) {
 
     return RunnableSequence.from([
         retranslationPrompt,
-        (prompt) => {
-            console.log({prompt});
-            return prompt;
-        },
         model,
         outputParser,
     ])
@@ -47,17 +44,13 @@ function initTranslationChain(model) {
     });
     const formatInstructions = parser.getFormatInstructions();
 
-    const translationSystemPrompt = `Given a sentence by User, translate that sentence into {language}\n{format_instructions}\n`;
+    const translationSystemPrompt = `Given a sentence by User, translate that sentence into {language}, you have also to recognize the language which is used for writing the input\n{format_instructions}\nUser: {input}\nAI: `;
     const translationTemplate = TEMPLATE_FN(translationSystemPrompt);
-    const translationPrompt = PromptTemplate.fromTemplate(translationTemplate);
+    const translationPrompt = PromptTemplate.fromTemplate(translationSystemPrompt);
 
 
     const translationChain = RunnableSequence.from([
         translationPrompt,
-        (prompt) => {
-            console.log({prompt});
-            return prompt;
-        },
         model,
         parser,
     ])
@@ -65,14 +58,14 @@ function initTranslationChain(model) {
     return {translationChain,formatInstructions};
 }
 
-function initResponseChain(category, model) {
+function initResponseChain(category, model, promptTemplate) {
     const system_prompt = getCurrentSystemPrompt({promptID: category});
 
 
-    const template = TEMPLATE_FN(system_prompt);
+    const template = promptTemplate(system_prompt);
 
 
-    const PROMPT = PromptTemplate.fromTemplate(template);
+    const PROMPT = ChatPromptTemplate.fromTemplate(template);
 
     return  RunnableSequence.from([
         PROMPT,
@@ -82,35 +75,19 @@ function initResponseChain(category, model) {
     ])
 }
 
-export async function POST(req) {
-    // Extract the `prompt` from the body of the request
-    const { prompt, category } = await req.json();
-
-    console.log({category})
-
-
-
-    const model = new Ollama({
-        baseUrl: "http://localhost:11434", // Default value
-        model: "openchat:latest", // Default value
-    });
-
-
-
-    const {translationChain,formatInstructions} = initTranslationChain(model);
-    const responseChain = initResponseChain(category, model);
+async function completionWithTranslation({model, category, prompt,promptTemplate}) {
+    const {translationChain, formatInstructions} = initTranslationChain(model);
+    const responseChain = initResponseChain(category, model,promptTemplate);
     const retranslationChain = initRetranslationChain(model);
 
 
-
-
     const chain = RunnableSequence.from([
-        {input: translationChain,original_input: new RunnablePassthrough()},
+        {input: translationChain, original_input: new RunnablePassthrough()},
 
         {
             input: (res) => res.input.translation,
-            original_input: ({original_input, input})=> ({
-                ... original_input, recognized_language: input.recognized_language
+            original_input: ({original_input, input}) => ({
+                ...original_input, recognized_language: input.recognized_language
             }),
         },
 
@@ -131,4 +108,50 @@ export async function POST(req) {
     });
 
     return new StreamingTextResponse(stream);
+}
+
+async function completionWithoutTranslation({category, model, prompt,promptTemplate}) {
+    const system_prompt = getCurrentSystemPrompt({promptID: category});
+
+    console.log({system_prompt})
+
+    const template = promptTemplate(system_prompt);
+
+
+    const PROMPT = PromptTemplate.fromTemplate(template);
+
+    const outputParser = new StringOutputParser();
+
+    const chain = RunnableSequence.from([
+        PROMPT,
+        model,
+        outputParser,
+    ]);
+
+    const stream = await chain.stream({input:prompt});
+
+    return new StreamingTextResponse(stream);
+}
+
+export async function POST(req) {
+    // Extract the `prompt` from the body of the request
+    const { prompt, category, translation, modelName } = await req.json();
+
+    console.log({category, modelName, translation})
+
+    const promptTemplate = models[modelName].TEMPLATE_FN;
+
+    console.log({prompt: promptTemplate("SYSPRPT")})
+
+    const model = new Ollama({
+        baseUrl: "http://localhost:11434", // Default value
+        model: models[modelName].name, // Default value
+    });
+
+    if(translation === 1 || translation === "1"){
+        return await completionWithTranslation({model, category, prompt,promptTemplate});
+    }
+
+    return await completionWithoutTranslation({category, model, prompt,promptTemplate});
+
 }

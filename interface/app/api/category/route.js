@@ -1,4 +1,4 @@
-import {createCategory, getAllCategories} from "@/dbutils";
+import {createCategory, getAllCategories} from "@/utils/dbutils";
 
 export async function GET(req) {
     const searchParams = req.nextUrl.searchParams

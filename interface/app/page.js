@@ -1,5 +1,5 @@
 import Answer from "@/components/answer_page";
-import {getAllCategories} from "@/dbutils";
+import {getAllCategories} from "@/utils/dbutils";
 
 
 export default async function AnswerPage(props) {

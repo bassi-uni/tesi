@@ -25,6 +25,7 @@
     "react-dom": "^18",
     "react-icons": "^5.0.1",
     "react-lottie": "^1.2.4",
+    "react-syntax-highlighter": "^15.5.0",
     "yarn": "^1.22.21"
   },
   "devDependencies": {

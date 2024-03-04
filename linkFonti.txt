@@ -1,0 +1,4 @@
+OPENCHAT TEMPLATE: https://huggingface.co/openchat/openchat-3.5-0106
+LLAMA2 TEMPLATE: https://gpus.llm-utils.org/llama-2-prompt-template/
+
+CODELLAMA TEMPLATE: https://www.promptingguide.ai/models/code-llama

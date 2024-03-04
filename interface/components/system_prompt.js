@@ -20,7 +20,10 @@ export const SystemPrompt = ({exitPromptSettings})=>{
                 "Content-Type": "application/json"
             }
         }).then(res => res.json())
-            .then(json => console.log(json))
+            .then(json => {
+                console.log(json)
+                setAvailablePrompts([...availablePrompts, {prompt: json.current, categoryID: categories[selectedCategoryIdx]?.ID}])
+            })
             .catch(err => console.error(err))
     }
     useEffect(()=>{
@@ -43,7 +46,7 @@ export const SystemPrompt = ({exitPromptSettings})=>{
             setPrompt(prompt.prompt);
         }
 
-        const filteredPrompts = availablePrompts.filter(p => p.categoryID === categories[selectedCategoryIdx]?.id);
+        const filteredPrompts = availablePrompts.filter(p => p.categoryID === categories[selectedCategoryIdx]?.ID);
     console.log({filteredPrompts})
 
     const handleNewCategory = category => {
@@ -53,7 +56,7 @@ export const SystemPrompt = ({exitPromptSettings})=>{
     }
 
     return (
-        <div className={"h-full w-[100vw] flex flex-col justify-center items-center fixed top-0 left-0 z-50 bg-black/70 backdrop-blur-xl gap-[100px] pt-[200px]"}>
+        <div className={"h-full w-[100vw] flex flex-col justify-center items-center fixed top-0 left-0 z-50 bg-black/70 backdrop-blur-xl gap-[100px] overflow-y-scroll"}>
             <h1 className={"text-white text-5xl"}>System Prompt Setting</h1>
             <ul className={"flex flex-wrap w-1/2 gap-5"}>
                 {categories && [...categories.map((category, index)=>(
@@ -72,7 +75,7 @@ export const SystemPrompt = ({exitPromptSettings})=>{
                     <Button size={"lg"} color={"primary"} className={"text-black"} type={"submit"}>Submit Prompt</Button>
                 </div>
             </form>
-            <ul className={"m-0 w-full h-full overflow-y-scroll flex flex-col items-center gap-5"}>
+            <ul className={"m-0 w-full h-[200px] overflow-y-scroll flex flex-col items-center gap-5"}>
                 {categories.length >0 && filteredPrompts.map((prompt, index)=>(
                     <li key={index} className={"text-white p-2 bg-gray-700 rounded-md w-2/3 hover:bg-primary hover:text-black cursor-pointer duration-150"} onClick={handlePromptClick(prompt)}>{prompt.prompt}</li>
                 ))}

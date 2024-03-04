@@ -1,0 +1,19 @@
+{
+  "name": "langchaintutorial",
+  "version": "1.0.0",
+  "description": "",
+  "main": "prova.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@langchain/community": "^0.0.34",
+    "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^16.4.5",
+    "langchain": "^0.1.25",
+    "zod": "^3.22.4"
+  }
+}

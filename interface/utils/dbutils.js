@@ -8,7 +8,7 @@ export const getCurrentSystemPrompt = ({promptID}) => {
 
 
     const stmt = db.prepare(`
-      SELECT prompt FROM system_prompt WHERE id = @promptID
+      SELECT prompt FROM system_prompt WHERE ID = @promptID
     `).get({promptID});
 
     const {prompt} = stmt;
@@ -33,8 +33,8 @@ export const newSystemPrompt = (prompt, category) => {
     }
 
     const categoryID = db.prepare(`
-        SELECT id FROM category WHERE name = @category
-    `).get({category}).id;
+        SELECT ID FROM category WHERE name = @category
+    `).get({category}).ID;
 
 
     if(!prompts.some(p => p.prompt === prompt && p.categoryID === categoryID)){
@@ -62,23 +62,25 @@ export const newSystemPrompt = (prompt, category) => {
     stmt2.run({prompt});
 
     return db.prepare(`
-        SELECT id FROM system_prompt WHERE prompt = @prompt
-        `).get({prompt}).id;
+        SELECT ID FROM system_prompt WHERE prompt = @prompt
+        `).get({prompt}).ID;
 
 
 }
 
-export const addTestRecord = (question, answer, pertinenceIndicator, promptID) => {
+export const addTestRecord = ({question, answer, pertinenceIndicator, promptID, loadingTime, model}) => {
     const stmt = db.prepare(`
       INSERT INTO test VALUES (
            null,
          @question,
          @answer,
+         @promptID,
          @pertinenceIndicator,
-         @promptID
+         @loadingTime,
+         @model
       )
     `);
-    stmt.run({question, answer, pertinenceIndicator, promptID});
+    stmt.run({question, answer, pertinenceIndicator, promptID, loadingTime, model});
 }
 
 export const getAllSystemPrompts = () => {
@@ -92,8 +94,8 @@ export const getAllCategories = (withActivePrompt) => {
     let stmt;
     if(withActivePrompt){
         stmt = db.prepare(`
-      SELECT category.*, system_prompt.prompt, system_prompt.id AS promptID
-      FROM category INNER JOIN system_prompt ON category.id = system_prompt.categoryID
+      SELECT category.*, system_prompt.prompt, system_prompt.ID AS promptID
+      FROM category INNER JOIN system_prompt ON category.ID = system_prompt.categoryID
       WHERE system_prompt.isSelected = TRUE
     `);
     }else{
