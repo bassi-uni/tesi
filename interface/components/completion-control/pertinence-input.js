@@ -1,5 +1,5 @@
 import {Slider} from "@nextui-org/react";
-import {PertinenceButton} from "@/components/PertinenceButton";
+import {PertinenceButton} from "@/components/completion-control/pertinence-button";
 //from 1 to 5
 const pertinenceLevels = Array.from({length: 5}, (_, i) => i + 1);
 //color for worst to best in 5 step (red to green)

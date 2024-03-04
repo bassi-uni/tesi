@@ -1,4 +1,4 @@
-import Answer from "@/components/answer_page";
+import Answer from "@/components/answer-page";
 import {getAllCategories} from "@/utils/dbutils";
 
 

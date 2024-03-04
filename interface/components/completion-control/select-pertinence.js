@@ -1,5 +1,5 @@
-import {Animation} from "@/components/Animation";
-import {PertinenceInput} from "@/components/PertinenceInput";
+import {Animation} from "@/components/animation";
+import {PertinenceInput} from "@/components/completion-control/pertinence-input";
 
 const SelectPertinence = ({isLoading, completion,setPertinence, sliderEnabled, pertinenceLabel} ) => {
     return (

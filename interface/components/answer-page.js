@@ -2,19 +2,18 @@
 import {RiBrainLine} from "react-icons/ri";
 import {Button, Select, SelectItem, Switch, Textarea} from "@nextui-org/react";
 import { useState} from "react";
-import {Cursor} from "@/components/cursor";
-import {SystemPrompt} from "@/components/system_prompt";
-import {Animation} from "@/components/Animation";
-import {PertinenceInput, pertinenceLabels, pertinenceTextColors} from "@/components/PertinenceInput";
+import {Cursor} from "@/components/completion/cursor";
+import {Animation} from "@/components/animation";
+import {PertinenceInput, pertinenceLabels, pertinenceTextColors} from "@/components/completion-control/pertinence-input";
 import { GoDependabot } from "react-icons/go";
 import { IoReloadCircleSharp } from "react-icons/io5";
 import useCompletion from "@/hooks/useCompletion";
-import NewCompletion from "@/components/new-completion";
-import SelectCategory from "@/components/select-category";
-import SelectModel from "@/components/select-model";
-import SelectPertinence from "@/components/select-pertinence";
-import TokenArea from "@/components/token-area";
-import ControlButtons from "@/components/control-btns";
+import NewCompletion from "@/components/completion/new-completion";
+import SelectCategory from "@/components/completion-control/select-category";
+import SelectModel from "@/components/completion-control/select-model";
+import SelectPertinence from "@/components/completion-control/select-pertinence";
+import TokenArea from "@/components/completion/token-area";
+import ControlButtons from "@/components/completion-control/control-btns";
 
 
 export default function Answer({categories}) {
@@ -74,7 +73,6 @@ export default function Answer({categories}) {
 
     return (
         <>
-            {settingPromptVisible && <SystemPrompt exitPromptSettings={()=>{setSettingPromptVisible(false)}}/>}
             <div className={`min-w-[100vw] min-h-[100vh] flex flex-col items-center justify-center bg-gray-200 text-black font-DMSans py-10 ${settingPromptVisible ? "hidden" : ""}`}>
                 <main className={"w-2/3 h-full flex flex-col items-center  gap-[30px] "}>
                     <h1 className={"text-6xl flex"}>Pertinence Analysis  <RiBrainLine /> </h1>
@@ -94,7 +92,7 @@ export default function Answer({categories}) {
                         <SelectPertinence completion={completion} setPertinence={setPertinence} pertinenceLabel={pertinenceLabel} isLoading={isLoading} sliderEnabled={sliderEnabled} />
                         <TokenArea isLoading={isLoading} completion={completion} error={error} />
                     </div>
-                    <ControlButtons handleNextQuestionClick={handleNextQuestionClick} pertinence={pertinence} setSettingPromptVisible={setSettingPromptVisible} />
+                    <ControlButtons handleNextQuestionClick={handleNextQuestionClick} pertinence={pertinence}  />
                 </main>
             </div>
         </>

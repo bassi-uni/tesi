@@ -1,5 +1,5 @@
 import {GoDependabot} from "react-icons/go";
-import {Cursor} from "@/components/cursor";
+import {Cursor} from "@/components/completion/cursor";
 import CodeComponent from "./code-component";
 
 const processCompletion = (completion) => {
