@@ -34,22 +34,22 @@ export default function Answer({categories}) {
         isLoading,
         error,
         handleSubmit,
-        setSelectedCategory,
-        selectedCategory,
+        setSelectedPromptID,
+        selectedPromptID,
         selectedModel, setModels,
         models,
         setSelectedModel,
         withTranslation,
         setWithTranslation,
         timer
-    } = useCompletion();
+    } = useCompletion({categories});
 
 
     const handleNextQuestionClick = async () => {
 
         const res = await fetch("api/test", {
             method: "POST",
-            body: JSON.stringify({question: input, answer: completion, pertinence, promptID: selectedCategory, loadingTime: timer, model: selectedModel}),
+            body: JSON.stringify({question: input, answer: completion, pertinence, promptID: selectedPromptID, loadingTime: timer, model: selectedModel}),
             headers: {
                 "Content-Type": "application/json"
             }
@@ -66,7 +66,7 @@ export default function Answer({categories}) {
 
 
     const handleSelectionChange = (e) => {
-        setSelectedCategory(e.target.value);
+        setSelectedPromptID(e.target.value);
     };
 
     const pertinenceLabel = pertinence !== -1 ? <label className={`font-bold ${pertinenceTextColors[pertinence-1]}`}>{pertinenceLabels[pertinence-1]}</label> : <label>Please select a pertinence level</label>;
@@ -82,7 +82,7 @@ export default function Answer({categories}) {
 
                         {error && <p className={"text-danger"}>Woops, something went wrong, please try again</p>}
 
-                        <SelectCategory handleSelectionChange={handleSelectionChange} selectedCategory={selectedCategory} categories={categories} />
+                        <SelectCategory handleSelectionChange={handleSelectionChange} selectedPromptID={selectedPromptID} categories={categories} />
 
                         <SelectModel setSelectedModel={setSelectedModel} selectedModel={selectedModel} models={models} />
                         <Switch defaultSelected={false} isSelected={withTranslation} onValueChange={setWithTranslation}>

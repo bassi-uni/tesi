@@ -32,6 +32,8 @@ export const newSystemPrompt = (prompt, category) => {
         createCategory(category)
     }
 
+    console.log({prompt, category})
+
     const categoryID = db.prepare(`
         SELECT ID FROM category WHERE name = @category
     `).get({category}).ID;
@@ -131,7 +133,12 @@ export const getPromptsByCategory = (categoryID) => {
     return stmt.all({categoryID});
 }
 
-
+export const deletePromptByID = (promptID) => {
+    const stmt = db.prepare(`
+      DELETE FROM system_prompt WHERE ID = @promptID
+    `);
+    stmt.run({promptID});
+}
 
 //initData();
 

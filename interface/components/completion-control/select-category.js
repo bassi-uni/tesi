@@ -1,15 +1,18 @@
 import {Select, SelectItem} from "@nextui-org/react";
 
-const SelectCategory = ({categories, selectedCategory, handleSelectionChange}) => {
+const SelectCategory = ({categories, selectedPromptID, handleSelectionChange}) => {
+    console.log({selectedPromptID})
     return (
-        <Select items={categories} label={"select a category"} selectedKeys={[selectedCategory]} onChange={handleSelectionChange} renderValue={([item]) => {
+        <Select items={categories} label={"select a category"} selectedKeys={[selectedPromptID]} onChange={handleSelectionChange} renderValue={([item]) => {
             return item?.data.name
         }} >
-            {(c) => (<SelectItem  key={c.promptID} value={c.name} clsssNames={{
+            {(c) => {
+                console.log({c})
+                return (<SelectItem  key={c.promptID} value={c.name} clsssNames={{
                 base: "text-black",
                 selected: "text-black",
                 wrapper: "text-black"
-            }} ><p className={"text-black"}>{c.name}</p></SelectItem>)}
+            }} ><p className={"text-black"}>{c.name}</p></SelectItem>)}}
 
         </Select>
     )

@@ -20,7 +20,13 @@ export const models = {
     },
     CODELLAMA: {
         name: 'codellama:13b-code',
-        TEMPLATE_FN: (sp) => `${sp}.\n {input}`
+        TEMPLATE_FN: (sp)=> `<s>[INST] <<SYS>>
+        ${sp}
+        <</SYS>>
+        
+        {input} [/INST]
+    
+    `
     },
     MISTRAL: {
         name: "mistral:latest",  

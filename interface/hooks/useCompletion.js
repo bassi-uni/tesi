@@ -2,12 +2,12 @@ import {fetchStreamData} from "@/utils/utils";
 import {useEffect, useState} from "react";
 import {models as availableModels} from "@/utils/constants";
 const TIMER_STEP = 10;
-const useCompletion = () => {
+const useCompletion = ({categories}) => {
     const [input, setInput] = useState("");
     const [completion, setCompletion] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [selectedCategory, setSelectedCategory] = useState("1");
+    const [selectedPromptID, setSelectedPromptID] = useState(""+categories[0].promptID);
 
     const [models, setModels] = useState(Object.keys(availableModels).map((m,idx) => ({key:m,model:m})));
 
@@ -37,7 +37,7 @@ const useCompletion = () => {
         setError(null);
         setCompletion("");
 
-        fetchStreamData("api/completion/ollama", {prompt: input, category: selectedCategory, translation: (withTranslation ? 1 : 0), modelName:selectedModel}, (entireResponse) => {
+        fetchStreamData("api/completion/ollama", {prompt: input, promptID: selectedPromptID, translation: (withTranslation ? 1 : 0), modelName:selectedModel}, (entireResponse) => {
             setCompletion(entireResponse);
         } , ()=>{
             setIsLoading(true)
@@ -47,7 +47,7 @@ const useCompletion = () => {
         }).catch(setError);
     }
 
-    return {input, setInput, completion, setCompletion, isLoading, error, handleSubmit, setSelectedCategory, selectedCategory, setModels, models, selectedModel, setSelectedModel, withTranslation, setWithTranslation, timer};
+    return {input, setInput, completion, setCompletion, isLoading, error, handleSubmit, setSelectedPromptID, selectedPromptID, setModels, models, selectedModel, setSelectedModel, withTranslation, setWithTranslation, timer};
 }
 
 export default useCompletion;

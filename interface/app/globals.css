@@ -34,3 +34,12 @@ body {
     text-wrap: balance;
   }
 }
+
+.icona-delete {
+  color: red;
+  opacity:0;
+}
+
+li:hover .icona-delete {
+  opacity: 1;
+}

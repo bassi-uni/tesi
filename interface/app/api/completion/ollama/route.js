@@ -58,8 +58,9 @@ function initTranslationChain(model) {
     return {translationChain,formatInstructions};
 }
 
-function initResponseChain(category, model, promptTemplate) {
-    const system_prompt = getCurrentSystemPrompt({promptID: category});
+function initResponseChain(promptID, model, promptTemplate) {
+    //get the promptWithThatId from database
+    const system_prompt = getCurrentSystemPrompt({promptID});
 
 
     const template = promptTemplate(system_prompt);
@@ -75,14 +76,21 @@ function initResponseChain(category, model, promptTemplate) {
     ])
 }
 
-async function completionWithTranslation({model, category, prompt,promptTemplate}) {
+async function completionWithTranslation({model, promptID, prompt,promptTemplate}) {
+
+    //getting the chain responsable of translation of a sentence and recognizing original language, and the formattation instructions
     const {translationChain, formatInstructions} = initTranslationChain(model);
-    const responseChain = initResponseChain(category, model,promptTemplate);
+    //getting the chain responsable of answer a question made in english
+    const responseChain = initResponseChain(promptID, model,promptTemplate);
+    //getting the chain responsable of retranslation of an answer to a certain language
     const retranslationChain = initRetranslationChain(model);
 
 
     const chain = RunnableSequence.from([
-        {input: translationChain, original_input: new RunnablePassthrough()},
+        {
+            input: translationChain, 
+            original_input: new RunnablePassthrough()
+        },
 
         {
             input: (res) => res.input.translation,
@@ -110,17 +118,19 @@ async function completionWithTranslation({model, category, prompt,promptTemplate
     return new StreamingTextResponse(stream);
 }
 
-async function completionWithoutTranslation({category, model, prompt,promptTemplate}) {
-    const system_prompt = getCurrentSystemPrompt({promptID: category});
+async function completionWithoutTranslation({promptID, model, prompt,promptTemplate}) {
+    //get the promptWithThatId from database
+    const system_prompt = getCurrentSystemPrompt({promptID});
 
     console.log({system_prompt})
 
+    //get the full system prompt injecting the current system_prompt directives into template
     const template = promptTemplate(system_prompt);
 
-
+    //build the chain
     const PROMPT = PromptTemplate.fromTemplate(template);
 
-    const outputParser = new StringOutputParser();
+    const outputParser = new BytesOutputParser();
 
     const chain = RunnableSequence.from([
         PROMPT,
@@ -135,10 +145,10 @@ async function completionWithoutTranslation({category, model, prompt,promptTempl
 
 export async function POST(req) {
     // Extract the `prompt` from the body of the request
-    const { prompt, category, translation, modelName } = await req.json();
+    const { prompt, promptID, translation, modelName } = await req.json();
 
-    console.log({category, modelName, translation})
-
+    console.log({promptID, modelName, translation})
+    //taking the template for the desired model
     const promptTemplate = models[modelName].TEMPLATE_FN;
 
     console.log({prompt: promptTemplate("SYSPRPT")})
@@ -149,9 +159,9 @@ export async function POST(req) {
     });
 
     if(translation === 1 || translation === "1"){
-        return await completionWithTranslation({model, category, prompt,promptTemplate});
+        return await completionWithTranslation({model, promptID, prompt,promptTemplate});
     }
 
-    return await completionWithoutTranslation({category, model, prompt,promptTemplate});
+    return await completionWithoutTranslation({promptID, model, prompt,promptTemplate});
 
 }
