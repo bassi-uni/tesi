@@ -5,10 +5,14 @@ import Link from "next/link";
 
 const SystemPrompt = async()=>{
 
-    const res = await fetch("http://localhost:3000/api/sys_prompt", {cache: "no-cache"});
+    const res = await fetch("http://localhost:3000/api/sys_prompt", {   
+            next: {revalidate: 10}
+        });
     let availablePrompts = await res.json();
 
-    const res1 = await fetch("http://localhost:3000/api/category?withActivePrompt=0",{cache: "no-cache"});
+    const res1 = await fetch("http://localhost:3000/api/category?withActivePrompt=0",{   
+        next: {revalidate: 10}
+    });
     const json1 = await res1.json();
     const categories = json1.categories;
 

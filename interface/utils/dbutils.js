@@ -65,12 +65,10 @@ export const newSystemPrompt = (prompt, category) => {
 
     return db.prepare(`
         SELECT ID FROM system_prompt WHERE prompt = @prompt
-        `).get({prompt}).ID;
-
-
+    `).get({prompt}).ID;
 }
 
-export const addTestRecord = ({question, answer, pertinenceIndicator, promptID, loadingTime, model}) => {
+export const addTestRecord = ({question, answer, pertinenceIndicator, promptID, loadingTime, model, withTranslation}) => {
     const stmt = db.prepare(`
       INSERT INTO test VALUES (
            null,
@@ -79,10 +77,11 @@ export const addTestRecord = ({question, answer, pertinenceIndicator, promptID, 
          @promptID,
          @pertinenceIndicator,
          @loadingTime,
-         @model
+         @model,
+         @withTranslation
       )
     `);
-    stmt.run({question, answer, pertinenceIndicator, promptID, loadingTime, model});
+    stmt.run({question, answer, pertinenceIndicator, promptID, loadingTime, model, withTranslation});
 }
 
 export const getAllSystemPrompts = () => {

@@ -49,7 +49,7 @@ export default function Answer({categories}) {
 
         const res = await fetch("api/test", {
             method: "POST",
-            body: JSON.stringify({question: input, answer: completion, pertinence, promptID: selectedPromptID, loadingTime: timer, model: selectedModel}),
+            body: JSON.stringify({question: input, answer: completion, pertinence, promptID: selectedPromptID, loadingTime: timer, model: selectedModel, withTranslation: withTranslation ? 1 : 0}),
             headers: {
                 "Content-Type": "application/json"
             }
@@ -71,6 +71,7 @@ export default function Answer({categories}) {
 
     const pertinenceLabel = pertinence !== -1 ? <label className={`font-bold ${pertinenceTextColors[pertinence-1]}`}>{pertinenceLabels[pertinence-1]}</label> : <label>Please select a pertinence level</label>;
 
+    const changeOptionsDisabled = completion.trim().length > 0 || isLoading;
     return (
         <>
             <div className={`min-w-[100vw] min-h-[100vh] flex flex-col items-center justify-center bg-gray-200 text-black font-DMSans py-10 ${settingPromptVisible ? "hidden" : ""}`}>
@@ -78,21 +79,21 @@ export default function Answer({categories}) {
                     <h1 className={"text-6xl flex"}>Pertinence Analysis  <RiBrainLine /> </h1>
                     <div className={"flex flex-col-reverse gap-7 items-center justify-around  w-full"}>
 
-                        <NewCompletion error={error} handleSubmit={handleSubmit} input={input} setInput={setInput} />
+                        <NewCompletion error={error} handleSubmit={handleSubmit} input={input} setInput={setInput} isDisabled={changeOptionsDisabled}/>
 
                         {error && <p className={"text-danger"}>Woops, something went wrong, please try again</p>}
 
-                        <SelectCategory handleSelectionChange={handleSelectionChange} selectedPromptID={selectedPromptID} categories={categories} />
+                        <SelectCategory handleSelectionChange={handleSelectionChange} selectedPromptID={selectedPromptID} categories={categories} isDisabled={changeOptionsDisabled}/>
 
-                        <SelectModel setSelectedModel={setSelectedModel} selectedModel={selectedModel} models={models} />
-                        <Switch defaultSelected={false} isSelected={withTranslation} onValueChange={setWithTranslation}>
+                        <SelectModel setSelectedModel={setSelectedModel} selectedModel={selectedModel} models={models} isDisabled={changeOptionsDisabled}/>
+                        <Switch defaultSelected={false} isSelected={withTranslation} onValueChange={setWithTranslation} isDisabled={changeOptionsDisabled}>
                             WithTranslation
                         </Switch>
 
                         <SelectPertinence completion={completion} setPertinence={setPertinence} pertinenceLabel={pertinenceLabel} isLoading={isLoading} sliderEnabled={sliderEnabled} />
                         <TokenArea isLoading={isLoading} completion={completion} error={error} />
                     </div>
-                    <ControlButtons handleNextQuestionClick={handleNextQuestionClick} pertinence={pertinence}  />
+                    <ControlButtons handleNextQuestionClick={handleNextQuestionClick} pertinence={pertinence} retryVisible={completion.trim().length>0 && !isLoading} onRetryClick={()=>{setCompletion("")}} />
                 </main>
             </div>
         </>

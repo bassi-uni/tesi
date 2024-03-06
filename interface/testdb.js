@@ -25,6 +25,7 @@ const createDB = () => {
         pertinenceIndicator INTEGER,
         loadingTime INTEGER,
         model TEXT,
+        withTranslation INTEGER,
         UNIQUE(question, answer, promptID),
         FOREIGN KEY (promptID) REFERENCES system_prompt(ID)
     );
@@ -61,6 +62,49 @@ async function initData() {
 
 
 }
+const alterTestTable = () => {
+    db.prepare(`
+        ALTER TABLE test
+        RENAME TO test_old_1
+    `).run();
+
+    db.prepare(`
+        CREATE TABLE test(
+            ID INTEGER PRIMARY KEY,
+            question TEXT,
+            answer TEXT,
+            promptID INTEGER,
+            pertinenceIndicator INTEGER,
+            loadingTime INTEGER,
+            model TEXT,
+            withTranslation INTEGER,
+            UNIQUE(question, answer, promptID),
+            FOREIGN KEY (promptID) REFERENCES system_prompt(ID)
+        );
+    `).run();
+}
+
+const deleteTestTableContent = () => {
+    db.prepare(`
+        DELETE FROM test
+    `).run();
+
+}
+
+const deleteTestTable = () => {
+    db.prepare(`
+        DROP TABLE test
+    `).run();
+
+}
+
+const deleteOldTestTable = () => {
+    db.prepare(`
+        DROP TABLE test_old_1
+    `).run();
+
+
+}
 
 
 (async()=>{
@@ -70,28 +114,14 @@ async function initData() {
 
 
     //delete all the content int test table and modify its pertinenceIndicator to be INTEGER with no CHECKS
-    db.prepare(`
-        DELETE FROM system_prompt
-    `).run();
-
     /*db.prepare(`
-        ALTER TABLE test
-        RENAME TO test_old_1
-    `).run();
+        DELETE FROM system_prompt
+    `).run();*/
 
-    db.prepare(`
-        CREATE TABLE test (
-            id INTEGER PRIMARY KEY,
-            question TEXT NOT NULL,
-            answer TEXT NOT NULL,
-            pertinenceIndicator INTEGER,
-            promptID INTEGER NOT NULL,
-            model TEXT NOT NULL,
-            loadingTime INTEGER NOT NULL,
-            FOREIGN KEY (promptID) REFERENCES system_prompt(id)
-        )
-    `).run();
-*/
+    deleteOldTestTable();
+    deleteTestTableContent();
+
+
     const res = db.prepare(`
         SELECT * FROM test
     `).all();

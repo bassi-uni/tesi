@@ -1,6 +1,6 @@
 import {Button, Textarea} from "@nextui-org/react";
 
-const NewCompletion = ({handleSubmit, setInput, input,error})=>{
+const NewCompletion = ({handleSubmit, setInput, input,error, isDisabled})=>{
     return (
         <form onSubmit={handleSubmit} className={"m-0 h-full w-full font-AnonymusPro"}>
             <Textarea placeholder={"Question will be here"} classNames={{
@@ -9,8 +9,8 @@ const NewCompletion = ({handleSubmit, setInput, input,error})=>{
                 input: "h-full max-h-full",
                 mainWrapper: "h-full"
             }} size={"lg"} onValueChange={setInput} value={input} endContent={
-                !error ? <Button type={"submit"} color={"primary"}>Submit</Button> : <Button color={"danger"} type={"submit"}>Retry</Button>
-            } color={error ? "danger" : "default"}>Question will be here</Textarea>
+                !error ? <Button type={"submit"} color={"primary"} isDisabled={false}>Submit</Button> : <Button color={"danger"} type={"submit"}>Retry</Button>
+            } color={error ? "danger" : "default"} isDisabled={isDisabled}>Question will be here</Textarea>
         </form>
     )
 }
