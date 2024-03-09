@@ -27,6 +27,11 @@ function getCritiqueAndInstructions(thatString) {
     return { critique, instruction };
   }
   
+  const modalTitles = [
+    'Wuold you like to provide feedback for the quality?',
+    'Please provide your suggestions',
+    "AI Suggestions for improvement"
+  ]
 
 const SystemPromptImprovement = ({isOpen, onOpenChange, question, answer, promptID}) => {
 
@@ -34,10 +39,17 @@ const SystemPromptImprovement = ({isOpen, onOpenChange, question, answer, prompt
     const [suggestions, setSuggestions] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [userSuggestions, setUserSuggestions] = useState("");
+
+
 
     const nextPhaseHandler = e => {
-        setPhase(1);
-        fetchStreamData("api/meta-prompting", {question, answer, promptID} , 
+        if(phase === 0){
+            setPhase(1);
+            return;
+        }
+        setPhase(2);
+        fetchStreamData("api/meta-prompting", {question, answer, promptID, suggestions: userSuggestions} , 
         //when a chunck arrives
         (entireResponse) => {
             console.log({entireResponse})
@@ -61,7 +73,7 @@ const SystemPromptImprovement = ({isOpen, onOpenChange, question, answer, prompt
         <ModalContent>
             {(onClose) => (
                 <>
-                    <ModalHeader className={"flex flex-col gap-1 text-white"}>Wuold you like to feedback the quality? </ModalHeader>
+                    <ModalHeader className={"flex flex-col gap-1 text-white"}>{modalTitles[phase]} </ModalHeader>
                     <ScrollShadow hideScrollBar>
                     <ModalBody >
                   
@@ -73,6 +85,12 @@ const SystemPromptImprovement = ({isOpen, onOpenChange, question, answer, prompt
                     }
                     {
                         phase === 1 && <>
+                            <Textarea  value={userSuggestions} onValueChange={setUserSuggestions} placeholder="e.g.: Assistaint should be more..."/>
+                            <Button color="primary" onPress={nextPhaseHandler}>Next</Button>
+                        </>
+                    }
+                    {
+                        phase === 2 && <>
                             <p>Question: {question}</p>
                             <p>Answer: {answer}</p>
                             <label className="text-2xl text-primary" >Suggestions</label>

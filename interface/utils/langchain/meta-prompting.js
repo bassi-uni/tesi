@@ -25,7 +25,9 @@ const meta_template = `
 
     Please reflect on these interactions.
 
-    You should first critique Assistant's performance. What could Assistant have done better? What should the Assistant remember about this user? Are there things this user always wants? Indicate this with "Critique: ...".
+    User suggestions: {suggestions}
+
+    You should first critique Assistant's performance. Keeping in mind also the user suggestions if there is some. What could Assistant have done better? What should the Assistant remember about this user? Are there things this user always wants? Indicate this with "Critique: ...".
 
     Previous Assistaint Instructions are the following: {prev_instructions}
 
@@ -42,10 +44,12 @@ const getStructuredChatHistory = ({question, answer}) => `
 
 
 
-export const adjustPrompt = async ({question, answer, promptID}) => {
+export const adjustPrompt = async ({question, answer, promptID, suggestions}) => {
     const sys_prompt = getCurrentSystemPrompt({promptID});
     const meta_prompt = PromptTemplate.fromTemplate(meta_template);
     const structured_chat_history = getStructuredChatHistory({question, answer});
+    
+    const sanitazed_suggestions = suggestions.trim().length === 0 ? "No suggestions" : suggestions;
 
     // const parser = StructuredOutputParser.fromNamesAndDescriptions({
     //     critique: "The critique for Assistant's performance ",
@@ -73,6 +77,7 @@ export const adjustPrompt = async ({question, answer, promptID}) => {
     const response = await chain.stream({
         chat_history: structured_chat_history,
         prev_instructions: sys_prompt,
+        suggestions: sanitazed_suggestions
 
     })
 
