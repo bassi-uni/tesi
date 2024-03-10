@@ -4,15 +4,9 @@ import {RunnablePassthrough, RunnableSequence} from "@langchain/core/runnables";
 import {StructuredOutputParser} from "langchain/output_parsers";
 import {getCurrentSystemPrompt} from "@/utils/dbutils";
 import {StreamingTextResponse} from "ai";
-
-const TEMPLATE_FN = (sp)=> `<<SYS>>${sp}<</SYS>>
-
-[INST]User: {input}
-AI: 
-[/INST]
-
-`;
-
+import {z} from "zod"
+import { Ollama } from "@langchain/community/llms/ollama";
+import { models } from "../constants";
 
 function initRetranslationChain(model) {
     const outputParser = new BytesOutputParser();
@@ -33,17 +27,26 @@ function initRetranslationChain(model) {
     ])
 }
 
-function initTranslationChain(model) {
-    const parser = StructuredOutputParser.fromNamesAndDescriptions({
-        recognized_language: "input's language that you have recognized",
-        translation: "the translation of the user input into the target language",
-    });
+function initTranslationChain(model, promptTemplate) {
+    // const parser = StructuredOutputParser.fromNamesAndDescriptions({
+    //     recognized_language: "input's language that you have recognized",
+    //     translation: "the translation of the user input into the target language",
+    // });
+
+
+    const parser = StructuredOutputParser.fromZodSchema(
+        z.object({
+            recognized_language: z.string().describe("input's language that you have recognized"),
+            translation: z.string().describe("the translation of the user input into the target language")
+        })
+    )
+
     const formatInstructions = parser.getFormatInstructions();
 
-    const translationSystemPrompt = `Given a sentence by User, translate that sentence into {language}, you have also to recognize the language which is used for writing the input\n{format_instructions}\nUser: {input}\nAI: `;
-    const translationTemplate = TEMPLATE_FN(translationSystemPrompt);
-    const translationPrompt = PromptTemplate.fromTemplate(translationSystemPrompt);
-
+    const translationSystemPrompt = `Given a sentence by User, translate that sentence into {language}, you have also to recognize the language which is used for writing the sentence. Do not provide any code, just translate and recognize the language\n{format_instructions}\nDo not provide any other extra information, only the formatted JSON response.`;
+    const translationTemplate = promptTemplate(translationSystemPrompt);
+    
+    const translationPrompt = PromptTemplate.fromTemplate(translationTemplate);
 
     const translationChain = RunnableSequence.from([
         translationPrompt,
@@ -73,19 +76,31 @@ function initResponseChain(promptID, model, promptTemplate) {
 }
 
 export async function completionWithTranslation({model, promptID, prompt,promptTemplate}) {
+    const {name, TEMPLATE_FN: translationPromptTemplate} = models.OPENCHAT;
+
+
+    const translationModel = new Ollama({
+        model: name,
+        baseUrl: "http://localhost:11434"
+    });
+
 
     //getting the chain responsible for translation of a sentence and recognizing original language, and the formattation instructions
-    const {translationChain, formatInstructions} = initTranslationChain(model);
+    const {translationChain, formatInstructions} = initTranslationChain(translationModel, translationPromptTemplate);
     //getting the chain responsible for answer a question made in english
     const responseChain = initResponseChain(promptID, model,promptTemplate);
     //getting the chain responsible for retranslation of an answer to a certain language
-    const retranslationChain = initRetranslationChain(model);
+    const retranslationChain = initRetranslationChain(translationModel);
 
 
     const chain = RunnableSequence.from([
         {
             input: translationChain,
             original_input: new RunnablePassthrough()
+        },
+        (res) => {
+            console.log({res});
+            return res;
         },
 
         {

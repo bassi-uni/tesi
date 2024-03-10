@@ -6,14 +6,6 @@ import {RunnableSequence} from "@langchain/core/runnables";
 import {BytesOutputParser, StringOutputParser} from "@langchain/core/output_parsers";
 import { StreamingTextResponse } from "ai";
 
-function get_new_instructions(meta_output) {
-    const delimiter = "Instructions: ";
-    const new_instructions = meta_output.substring(meta_output.indexOf(delimiter) + delimiter.length);
-    return new_instructions;
-}
-
-
-
 const meta_template = `
     Assistant has just had the below interactions with a User. Assistant followed their "Instructions" closely. Your job is to critique the Assistant's performance and then revise the Instructions so that Assistant would quickly and correctly respond in the future.
 
@@ -42,8 +34,6 @@ const getStructuredChatHistory = ({question, answer}) => `
     `
 
 
-
-
 export const adjustPrompt = async ({question, answer, promptID, suggestions}) => {
     const sys_prompt = getCurrentSystemPrompt({promptID});
     const meta_prompt = PromptTemplate.fromTemplate(meta_template);
@@ -51,25 +41,13 @@ export const adjustPrompt = async ({question, answer, promptID, suggestions}) =>
     
     const sanitazed_suggestions = suggestions.trim().length === 0 ? "No suggestions" : suggestions;
 
-    // const parser = StructuredOutputParser.fromNamesAndDescriptions({
-    //     critique: "The critique for Assistant's performance ",
-    //     instructions: "The revisited Instructions ",
-    // });
-
-    //const formatInstructions = parser.getFormatInstructions();
-
-
     const model = new Ollama({
-        baseUrl: "http://localhost:11434", // Default value
-        model: models.MISTRAL.name, // Default value
+        baseUrl: "http://localhost:11434", 
+        model: models.MISTRAL.name, 
     });
 
-    const chain =RunnableSequence.from([
+    const chain = RunnableSequence.from([
         meta_prompt,
-        (prompt)=> {
-            console.log({prompt})
-            return prompt
-        },
         model,
         new BytesOutputParser(),
     ])

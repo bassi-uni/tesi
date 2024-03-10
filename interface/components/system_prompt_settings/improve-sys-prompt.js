@@ -1,6 +1,6 @@
 import { copyToClipboard, fetchStreamData } from "@/utils/utils";
 import {Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure, Textarea, Tooltip, ScrollShadow} from "@nextui-org/react";
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { FaRegCopy } from "react-icons/fa";
 
 
@@ -48,6 +48,7 @@ const SystemPromptImprovement = ({isOpen, onOpenChange, question, answer, prompt
             setPhase(1);
             return;
         }
+        console.log("PASSO FASE 2")
         setPhase(2);
         fetchStreamData("api/meta-prompting", {question, answer, promptID, suggestions: userSuggestions} , 
         //when a chunck arrives
@@ -65,8 +66,39 @@ const SystemPromptImprovement = ({isOpen, onOpenChange, question, answer, prompt
         }).catch(setError);
     }
 
+
     const {critique, instruction} = getCritiqueAndInstructions(suggestions);
-    console.log({critique, instruction})
+    
+    const phasesComponents = useCallback ((onClose)=>[
+        <>
+            <Button color="primary" onPress={nextPhaseHandler}>Yes</Button>
+            <Button onPress={onClose}>No</Button>
+        </>,
+        <>
+            <Textarea  value={userSuggestions} onValueChange={setUserSuggestions} placeholder="e.g.: Assistaint should be more..."/>
+            <Button color="primary" onPress={nextPhaseHandler}>Next</Button>
+        </>,
+        <>
+            <p>Question: {question}</p>
+            <p>Answer: {answer}</p>
+            <label className="text-2xl text-primary" >Suggestions</label>
+    
+            <label className="font-AnonymusPro text-primary font-bold">Critique</label>
+            <p>{critique}</p>
+            <label className="font-AnonymusPro text-primary font-bold">Instructions</label>
+            <Textarea 
+                value={instruction} 
+                endContent={
+                    <Tooltip className="dark text-white" content="Copy to the clip board">
+                        <Button isIconOnly onPress={()=>copyToClipboard(instruction)}><FaRegCopy /></Button>
+                    </Tooltip>
+                } 
+                isReadOnly
+            />
+        
+        </>
+
+    ], [userSuggestions, setUserSuggestions, nextPhaseHandler, critique, instruction, phase])
 
     return <Modal isOpen={isOpen} className="dark max-h-[500px]" onOpenChange={onOpenChange} backdrop="blur">
        
@@ -75,37 +107,9 @@ const SystemPromptImprovement = ({isOpen, onOpenChange, question, answer, prompt
                 <>
                     <ModalHeader className={"flex flex-col gap-1 text-white"}>{modalTitles[phase]} </ModalHeader>
                     <ScrollShadow hideScrollBar>
-                    <ModalBody >
+                    <ModalBody className="text-white">
                   
-                    {
-                      phase === 0 && <>
-                        <Button color="primary" onPress={nextPhaseHandler}>Yes</Button>
-                        <Button onPress={onClose}>No</Button>
-                        </>
-                    }
-                    {
-                        phase === 1 && <>
-                            <Textarea  value={userSuggestions} onValueChange={setUserSuggestions} placeholder="e.g.: Assistaint should be more..."/>
-                            <Button color="primary" onPress={nextPhaseHandler}>Next</Button>
-                        </>
-                    }
-                    {
-                        phase === 2 && <>
-                            <p>Question: {question}</p>
-                            <p>Answer: {answer}</p>
-                            <label className="text-2xl text-primary" >Suggestions</label>
-                       
-                            <label className="font-AnonymusPro text-primary font-bold">Critique</label>
-                            <p>{critique}</p>
-                            <label className="font-AnonymusPro text-primary font-bold">Instructions</label>
-                            <Textarea value={instruction} endContent={
-                            <Tooltip className="dark" content="Copy to the clip board">
-                                <Button isIconOnly onPress={()=>copyToClipboard(instruction)}><FaRegCopy /></Button>
-                            </Tooltip>} isReadOnly/>
-                            
-                        </>
-
-                    }
+                    { phasesComponents(onClose)[phase]}
                       
                     </ModalBody>
                     </ScrollShadow>

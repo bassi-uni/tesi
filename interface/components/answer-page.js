@@ -75,7 +75,7 @@ export default function Answer({categories}) {
     return (
         <>
             <div className={`min-w-[100vw] min-h-[100vh] flex flex-col items-center justify-center bg-gray-200 text-black font-DMSans py-10 ${settingPromptVisible ? "hidden" : ""}`}>
-                <ImproveSysPrompt isOpen={isOpen} onOpenChange={onOpenChange} question={input} answer={completion} promptID={selectedPromptID}/>
+                {isOpen && <ImproveSysPrompt isOpen={isOpen} onOpenChange={onOpenChange} question={input} answer={completion} promptID={selectedPromptID}/>}
                 <main className={"w-2/3 h-full flex flex-col items-center  gap-[30px] "}>
                     <h1 className={"text-6xl flex"}>Pertinence Analysis  <RiBrainLine /> </h1>
                     <div className={"flex flex-col-reverse gap-7 items-center justify-around  w-full"}>
@@ -88,7 +88,7 @@ export default function Answer({categories}) {
 
                         <SelectModel setSelectedModel={setSelectedModel} selectedModel={selectedModel} models={models} isDisabled={changeOptionsDisabled}/>
                         <Switch defaultSelected={false} isSelected={withTranslation} onValueChange={setWithTranslation} isDisabled={changeOptionsDisabled}>
-                            WithTranslation
+                            With Translation
                         </Switch>
 
                         <SelectPertinence
@@ -100,7 +100,10 @@ export default function Answer({categories}) {
                             onOpen={onOpen}/>
                         <TokenArea isLoading={isLoading} completion={completion} error={error} />
                     </div>
-                    <ControlButtons handleNextQuestionClick={handleNextQuestionClick} pertinence={pertinence} retryVisible={completion.trim().length>0 && !isLoading} onRetryClick={()=>{setCompletion("")}} />
+                    <ControlButtons handleNextQuestionClick={handleNextQuestionClick} pertinence={pertinence} retryVisible={completion.trim().length>0 && !isLoading} onRetryClick={()=>{
+                        setCompletion(""); 
+                        setPertinence(-1)
+                        }} />
                 </main>
             </div>
         </>
