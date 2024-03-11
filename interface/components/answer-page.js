@@ -47,18 +47,18 @@ export default function Answer({categories}) {
 
     const handleNextQuestionClick = async () => {
 
-        // const res = await fetch("api/test", {
-        //     method: "POST",
-        //     body: JSON.stringify({question: input, answer: completion, pertinence, promptID: selectedPromptID, loadingTime: timer, model: selectedModel, withTranslation: withTranslation ? 1 : 0}),
-        //     headers: {
-        //         "Content-Type": "application/json"
-        //     }
-        // })
+        const res = await fetch("api/test", {
+            method: "POST",
+            body: JSON.stringify({question: input, answer: completion, pertinence, promptID: selectedPromptID, loadingTime: timer, model: selectedModel, withTranslation: withTranslation ? 1 : 0}),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
 
-        // const json = await res.json();
+        const json = await res.json();
         onOpen();
-        // setInput("")
-        // setCompletion("")
+        setInput("")
+        setCompletion("")
     }
 
     const sliderEnabled = input.trim() !== "" && completion.trim() !== "" && !isLoading;
@@ -72,6 +72,8 @@ export default function Answer({categories}) {
     const pertinenceLabel = pertinence !== -1 ? <label className={`font-bold ${pertinenceTextColors[pertinence-1]}`}>{pertinenceLabels[pertinence-1]}</label> : <label>Please select a pertinence level</label>;
 
     const changeOptionsDisabled = completion.trim().length > 0 || isLoading;
+
+    
     return (
         <>
             <div className={`min-w-[100vw] min-h-[100vh] flex flex-col items-center justify-center bg-gray-200 text-black font-DMSans py-10 ${settingPromptVisible ? "hidden" : ""}`}>

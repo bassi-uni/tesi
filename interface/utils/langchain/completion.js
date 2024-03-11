@@ -12,11 +12,13 @@ function initRetranslationChain(model) {
     const outputParser = new BytesOutputParser();
 
     const retranslationPrompt = ChatPromptTemplate.fromMessages([
-        ["system", "Given a sentence by User, translate that sentence into {language}, do not add any other extra information or characters"],
+        ["system", "Given a sentence by User, translate that sentence into {language}, do not add any other extra information or characters, do not translate words that are used in the same way in all languages or Proper Names. For example, do not translate 'Jhon' or 'New York'. Do not translate code from programming languages. For example, do not translate 'print(\"Hello Word!\")' or 'function'."],
         ["user", "Translate this sentence into English:\n'Ciao, come stai?'"],
         ["ai", "Hello, how are you?"],
         ["user", "Translate this sentence into Italian:\n'Je suis un homme'"],
         ["ai", "Sono un uomo"],
+        ["user", "Translate this sentence into Italian:\n'def factorial(n):\n    if n == 0:\n        return 1\n    else:\n        return n * factorial(n-1)'"],
+        ["ai", "def factorial(n):\n    if n == 0:\n        return 1\n    else:\n        return n * factorial(n-1)"],
         ["user", "Translate this sentence into {language}:\n'{input}'"],
     ])
 
@@ -43,9 +45,40 @@ function initTranslationChain(model, promptTemplate) {
 
     const formatInstructions = parser.getFormatInstructions();
 
-    const translationSystemPrompt = `Given a sentence by User, translate that sentence into {language}, you have also to recognize the language which is used for writing the sentence. Do not provide any code, just translate and recognize the language\n{format_instructions}\nDo not provide any other extra information, only the formatted JSON response.`;
+    const translationSystemPrompt = `Given a sentence by User, translate that sentence into {language}, you have also to recognize the language which is used for writing the sentence. 
+    Do not provide any code, just translate and recognize the language.
+    Do not translate code keywords.
+    For example, do not translate "print" or "function".
+    {format_instructions}
+    Do not provide any other extra information, only the formatted JSON response.
+    Examples of translations into English:
+    GPT4 Correct User: Dammi la ricetta per la pasta alla carbonara<|end_of_turn|>
+    GPT4 Correct Assistant: {{
+        "recognized_language": "Italian",
+        "translation": "Give me the recipe for pasta alla carbonara"
+    }}
+    <|end_of_turn|>
+    GPT4 Correct User: Trova il bug in questo codice: 
+    def fibonacci:  
+        if n <= 1:  
+            return n  
+        else:  
+            return(fibonacci(n-1) + fibonacci(n-2))
+    <|end_of_turn|>
+    GPT4 Correct Assistant: {{
+        "recognized_language": "Italian",
+        "translation": "Find the bug in the following code: 
+    def fibonacci:  
+        if n <= 1:  
+            return n  
+        else:  
+            return(fibonacci(n-1) + fibonacci(n-2))"
+        }}
+    <|end_of_turn|>
+    --END OF EXAMPLES--
+    `;
     const translationTemplate = promptTemplate(translationSystemPrompt);
-    
+
     const translationPrompt = PromptTemplate.fromTemplate(translationTemplate);
 
     const translationChain = RunnableSequence.from([
@@ -104,7 +137,7 @@ export async function completionWithTranslation({model, promptID, prompt,promptT
         },
 
         {
-            input: (res) => res.input.translation,
+            input: ({input}) => input.translation,
             original_input: ({original_input, input}) => ({
                 ...original_input, recognized_language: input.recognized_language
             }),
@@ -116,6 +149,10 @@ export async function completionWithTranslation({model, promptID, prompt,promptT
                 return original_input.recognized_language;
             },
 
+        },
+        (res) => {
+            console.log({responseChain: res});
+            return res;
         },
         retranslationChain,
     ]);

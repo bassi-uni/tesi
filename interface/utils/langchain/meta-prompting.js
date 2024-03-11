@@ -24,7 +24,7 @@ const meta_template = `
     Previous Assistaint Instructions are the following: {prev_instructions}
 
     You should next revise the Instructions so that Assistant would quickly and correctly respond in the future. Assistant's goal is to satisfy the user in as few interactions as possible. Assistant will only see the new Instructions, not the interaction history, so anything important must be summarized in the Instructions. Don't forget any important details in the current Instructions! Indicate the new Instructions by "Instructions: ...".
-    
+        
     `;
 
 

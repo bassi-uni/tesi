@@ -20,7 +20,7 @@ ${sp}
     },
     CODELLAMA: {
         name: 'codellama:13b-code',
-        TEMPLATE_FN: (sp)=> `[INST] <<SYS>>${sp}<</SYS>> {input} [/INST]`
+        TEMPLATE_FN: (sp)=> `${sp}. {input}`
     },
     MISTRAL: {
         name: "mistral:latest",  
@@ -31,8 +31,7 @@ ${sp}
     GEMMA: {
         name: "gemma:7b",
         TEMPLATE_FN: (sp) => `<start_of_turn>user
-${sp}.
-{input}<end_of_turn>
+${sp}. {input}<end_of_turn>
 <start_of_turn>model`
     }
 }
