@@ -5,17 +5,20 @@ export const NewCategory = ({onNewCategory}) => {
     const [category, setCategory] = useState("");
     const handleSubmit = e => {
         e.preventDefault();
-        console.log("Ciao")
         fetch("api/category", {
             method: "POST",
             body: JSON.stringify({category}),
             headers: {
                 "Content-Type": "application/json"
             }
-        }).then(res => res.json())
-            .then(json => console.log(json))
-            .catch(err => console.error(err))
-        onNewCategory(category)
+        })
+        .then(res => res.json())
+        .then(json => {
+            console.log(json);
+            onNewCategory(category)
+        })
+        .catch(err => console.error(err))
+        
     }
 
     return (

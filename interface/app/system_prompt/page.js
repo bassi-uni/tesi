@@ -1,6 +1,4 @@
-import PromptCreation from "@/components/system_prompt_settings/prompt-creation";
-import {Button, Textarea} from "@nextui-org/react";
-import Link from "next/link";
+import SystemPromptSettings from "@/components/system_prompt_settings/system-prompt-settings";
 
 
 const SystemPrompt = async()=>{
@@ -24,7 +22,7 @@ const SystemPrompt = async()=>{
         <div className={"h-full w-[100vw] flex flex-col justify-center items-center fixed top-0 left-0 z-50 bg-black/70 backdrop-blur-xl gap-[100px] overflow-y-scroll"}>
             <h1 className={"text-white text-5xl"}>System Prompt Setting</h1>
 
-            <PromptCreation categories={categories} availablePrompts={availablePrompts}/>
+            <SystemPromptSettings categories={categories} availablePrompts={availablePrompts}/>
         </div>
     )
 }
