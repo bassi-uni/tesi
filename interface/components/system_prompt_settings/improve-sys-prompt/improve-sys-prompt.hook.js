@@ -42,6 +42,7 @@ const useImproveSystemPrompt = ({question, answer, promptID}) => {
         }
 
         setPhase(2);
+        console.log({question,answer})
         fetchStreamData("api/meta-prompting", {question, answer, promptID, suggestions: userSuggestions} ,
 
             (entireResponse) => {

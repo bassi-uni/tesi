@@ -1,105 +1,109 @@
-// import { Ollama } from "@langchain/community/llms/ollama";
+import { Chroma } from "@langchain/community/vectorstores/chroma";
+import { OllamaEmbeddings } from "langchain/embeddings/ollama";
+import { VectorStoreRetrieverMemory } from "langchain/memory";
+import { LLMChain, } from "langchain/chains";
+import { Ollama } from "@langchain/community/llms/ollama";
+import { PromptTemplate } from "@langchain/core/prompts";
+import { ChromaClient } from "chromadb";
+import { RunnableSequence } from "@langchain/core/runnables";
+import { StringOutputParser } from "@langchain/core/output_parsers";
 
-// import {PromptTemplate, ChatPromptTemplate, FewShotChatMessagePromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate} from "@langchain/core/prompts";
-// import * as dotenv from "dotenv"
-// import {createStuffDocumentsChain} from "langchain/chains/combine_documents"
-// import {createRetrievalChain} from "langchain/chains/retrieval"
-
-// import {CheerioWebBaseLoader} from "langchain/document_loaders/web/cheerio"
-// import {RecursiveCharacterTextSplitter} from "langchain/text_splitter"
-// import { OllamaEmbeddings } from "langchain/embeddings/ollama";
-// import {MemoryVectorStore} from "langchain/vectorstores/memory"
-
-
-// dotenv.config()
-
-
-// const model = new Ollama({
-//     baseUrl: "http://localhost:11434", // Default value
-//     model: "openchat:latest", // Default value
-// });
-
-// const url = "https://js.langchain.com/docs/expression_language/";
-
-// //creare chain che mi serve per rispondere a domande dando oggetti Document come context
-// const prompt = ChatPromptTemplate.fromTemplate(`
-//     Answer the user question. 
-//     Context: {context}
-//     Question: {input}
-// `)
-
-// const chain = await createStuffDocumentsChain({
-//     llm: model,
-//     prompt
-// })
-
-
-// //creare loader per fare scraping
-
-// const loadDocument = async () => {
-//     const loader = new CheerioWebBaseLoader(url)
-
-//     return await loader.load();
-// }
-
-// const docs = await loadDocument();
-
-
-// const splitDocuments = async () => {
-//     const splitter =  new RecursiveCharacterTextSplitter({
-//         chunkSize: 200,
-//         chunkOverlap: 20,
-//     })
+const getMemory = async ({modelName, collectionName}) => {
+    const embeddings = new OllamaEmbeddings({
+        model: modelName, // default value
+        baseUrl: "http://localhost:11434", // default value
+    });
     
-//     return await splitter.splitDocuments(docs);
-// }
-
-
-// //splittare il documento
-
-// const splitDocs = await splitDocuments()
-
-// //creare embeddings
-
-// const embeddings = new OllamaEmbeddings({
+    const chroma = new Chroma(embeddings, {
+        collectionName
+    });
     
-//         baseUrl: "http://localhost:11434", // Default value
-//         model: "openchat:latest", // Default value
+    await chroma.ensureCollection();
+
+   
+    const memory = new VectorStoreRetrieverMemory({
+        vectorStoreRetriever: chroma.asRetriever(1),
+        memoryKey: "history"
+    })
+
+    return memory;
     
-// })
+}
 
-// async function createRetriever({splitDocs, embeddings}) {
-//     const vectorStore = await MemoryVectorStore.fromDocuments(splitDocs, embeddings);
+const chainCallWithMemory = async ({chain, input, memory}) => {
+    const {history} = await memory.loadMemoryVariables({prompt: input});
+    console.log({history})
+   
+    const res = await chain.invoke({ input, history });
 
+    await memory.saveContext({
+        input
+    },{
+        output: res
+    })
+    return res;
 
-//     const retriever = vectorStore.asRetriever({
-//         k: 3
-//     });
-//     return retriever;
-// }
-
-// const retriever = await createRetriever({splitDocs, embeddings});
-
-
-// const retrievalChain = await createRetrievalChain({
-//     combineDocsChain: chain,
-//     retriever
-// })
+}
 
 
-// const res = await retrievalChain.invoke({
-//     context: docs,
-//     input: "What is LangChain Expression Language?"
-// })
+const deleteCollection = async ({name}) => {
+    const client = new ChromaClient();
+    await client.deleteCollection({name});
+}
 
-// console.log(res)
-import {StructuredOutputParser} from "langchain/output_parsers";
+await deleteCollection({name: "pippochat"});
+
+const memory = await getMemory({
+    modelName: "openchat:latest",
+    collectionName: "pippochat"
+})
+
+const model = new Ollama({
+    baseUrl: "http://localhost:11434", // Default value
+    model: "openchat:latest"});
 
 
-const parser = StructuredOutputParser.fromNamesAndDescriptions({
-    recognized_language: "input's language that you have recognized",
-    translation: "the translation of the user input into the target language",
-});
-const formatInstructions = parser.getFormatInstructions();
+const prompt = PromptTemplate.fromTemplate(`The following is a friendly conversation between a human and an AI. The AI is talkative and provides lots of specific details from its context. If the AI does not know the answer to a question, it truthfully says it does not know.
 
-console.log({formatInstructions})
+Relevant pieces of previous conversation:
+{history}
+
+(You do not need to use these pieces of information if not relevant)
+
+Current conversation:
+Human: {input}
+AI:`);
+
+const chain = RunnableSequence.from([
+    prompt,
+    model,
+    new StringOutputParser()
+])
+
+
+
+//const res1 = await chain.call({ input: "Hi, my name is Perry, what's up?" , memory: memory.loadMemoryVariables({prompt: "Hi, my name is Perry, what's up?"})   });
+const res1 = await chainCallWithMemory({chain, input: "Hi, my name is Perry, what's up?", memory});
+console.log({ res1 });
+/*
+{
+  res1: {
+    text: " Hi Perry, I'm doing great! I'm currently exploring different topics related to artificial intelligence like natural language processing and machine learning. What about you? What have you been up to lately?"
+  }
+}
+*/
+
+// const res2 = await chain.call({ input: "what's my favorite sport?" });
+const res2 = await chainCallWithMemory({chain, input: "what's my favorite sport?", memory});
+console.log({ res2 });
+/*
+{ res2: { text: ' You said your favorite sport is soccer.' } }
+*/
+
+// const res3 = await chain.call({ input: "what's my name?" });
+const res3 = await chainCallWithMemory({chain, input: "what's my name?", memory});
+console.log({ res3 });
+
+
+
+

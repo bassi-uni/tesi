@@ -32,6 +32,8 @@ export default function Answer({categories}) {
         pertinence,
         setPertinence,
         handleNextQuestionClick,
+        setCompletion
+    
     } = useCompletion({categories, onOpen});
 
     return (
@@ -60,6 +62,7 @@ export default function Answer({categories}) {
                     onOpen={onOpen}
                     handleNextQuestionClick={handleNextQuestionClick}
                     models={models}
+                    setCompletion={setCompletion}
                 />
             </div>
         </>

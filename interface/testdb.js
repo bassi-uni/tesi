@@ -91,11 +91,38 @@ const deleteTestTableContent = () => {
 
 }
 
+const deleteCategoryTableContent = () => {
+    db.prepare(`
+        DELETE FROM category
+    `).run();
+}
+
+const deleteSystemPromptTableContent = () => {
+    db.prepare(`
+
+        DELETE FROM system_prompt
+    `).run();
+}
+
+
+
 const deleteTestTable = () => {
     db.prepare(`
         DROP TABLE test
     `).run();
 
+}
+
+const deleteCategoryTable = () => {
+    db.prepare(`
+        DROP TABLE category
+    `).run();
+}
+
+const deleteSystemPromptTable = () => {
+    db.prepare(`
+        DROP TABLE system_prompt
+    `).run();
 }
 
 const deleteOldTestTable = () => {
@@ -118,9 +145,9 @@ const deleteOldTestTable = () => {
         DELETE FROM system_prompt
     `).run();*/
 
-    deleteOldTestTable();
     deleteTestTableContent();
-
+    deleteSystemPromptTableContent();
+    deleteCategoryTableContent();
 
     const res = db.prepare(`
         SELECT * FROM test

@@ -60,8 +60,8 @@ const useCompletion = ({categories, onOpen}) => {
 
             await res.json();
             onOpen();
-            setInput("");
-            setCompletion("");
+            // setInput("");
+            // setCompletion("");
         } catch (error) {
             console.error(error);
         }
@@ -99,7 +99,8 @@ const useCompletion = ({categories, onOpen}) => {
         changeOptionsDisabled,
         pertinence,
         setPertinence,
-        handleNextQuestionClick
+        handleNextQuestionClick,
+        setCompletion
     };
 }
 

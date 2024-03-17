@@ -12,6 +12,7 @@
   "dependencies": {
     "@langchain/community": "^0.0.34",
     "cheerio": "^1.0.0-rc.12",
+    "chromadb": "^1.8.1",
     "dotenv": "^16.4.5",
     "langchain": "^0.1.25",
     "zod": "^3.22.4"

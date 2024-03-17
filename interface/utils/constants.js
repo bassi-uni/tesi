@@ -5,7 +5,15 @@ export const models = {
 GPT4 Correct User: {input}<|end_of_turn|>
 GPT4 Correct Assistant:
     
-    `
+    `,
+        TEMPLATE_FN_HISTORY: (sp)=> `GPT4 Correct System: ${sp}<|end_of_turn|>
+        {history}
+        GPT4 Correct User: {input}<|end_of_turn|>
+        GPT4 Correct Assistant:
+`,
+        userInteractionTemplate: i => ({"GPT4 Correct User:" : `${i}<|end_of_turn|>`}),
+        AIInteractionTemplate: i => ({"GPT4 Correct Assistant:" : `${i}<|end_of_turn|>`})
+
     },
     LLAMA: 
     {
@@ -16,18 +24,42 @@ ${sp}
         
 {input} [/INST]
     
-    `
+    `,
+        TEMPLATE_FN_HISTORY: (sp)=> `<s>[INST] <<SYS>>
+        ${sp}
+        <</SYS>>
+        
+        {history}
+
+        <s>[INST] {input} [/INST]
+        `,        
+        userInteractionTemplate: i => ({"" : `${i}[/INST]`}),
+        AIInteractionTemplate: i => ({"" : `${i}</s>`})
+
     },
     CODELLAMA: {
         name: 'codellama:13b-code',
-        TEMPLATE_FN: (sp)=> `${sp}. {input}`
+        TEMPLATE_FN: (sp)=> `${sp}. {input}`,
+        TEMPLATE_FN_HISTORY: (sp)=> `${sp}. 
+Here is pertinent information from the previous conversation that you can use:
+{history}.
+{input}`,
     },
     MISTRAL: {
         name: "mistral:latest",  
         TEMPLATE_FN : (sp)=> `<s>[INST] ${sp} [/INST]</s>
 [INST] {input} [/INST]
-    `
+    `,
+        TEMPLATE_FN_HISTORY: (sp)=> `<s>[INST] ${sp}. 
+Relevant pieces of previous conversation:
+{history}
+[/INST]</s>
+[INST] {input} [/INST]
+    `,
+        userInteractionTemplate: i => ({"" : `[INST] ${i} [/INST]`}),
+        AIInteractionTemplate: i => ({"" : `[INST] ${i} [/INST]`})
     },
+
     GEMMA: {
         name: "gemma:7b",
         TEMPLATE_FN: (sp) => `<start_of_turn>user

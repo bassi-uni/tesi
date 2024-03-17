@@ -28,6 +28,10 @@ export const adjustPrompt = async ({question, answer, promptID, suggestions}) =>
 
     const chain = RunnableSequence.from([
         meta_prompt,
+        (meta_prompt) => {
+            console.log({meta_prompt});
+            return meta_prompt;
+        },
         model,
         new BytesOutputParser(),
     ])

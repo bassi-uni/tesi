@@ -28,7 +28,8 @@ const CompletionTest = ({
                             onOpen,
                             handleNextQuestionClick,
                             pertinence,
-                            models
+                            models,
+                            setCompletion
 }) => {
 
 

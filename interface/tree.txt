@@ -1,0 +1,59 @@
+.
+├── README.md
+├── app
+│   ├── actions.js
+│   ├── api
+│   │   ├── category
+│   │   │   └── route.js
+│   │   ├── completion
+│   │   │   └── ollama
+│   │   │       └── route.js
+│   │   ├── meta-prompting
+│   │   │   └── route.js
+│   │   ├── sys_prompt
+│   │   │   └── route.js
+│   │   └── test
+│   │       └── route.js
+│   ├── assets
+│   │   └── animations
+│   ├── layout.js
+│   ├── page.js
+│   └── system_prompt
+│       └── page.js
+├── components
+│   ├── animation.js
+│   ├── answer-page.js
+│   ├── completion
+│   │   ├── code-component.js
+│   │   ├── completion.js
+│   │   ├── cursor.js
+│   │   ├── new-completion.js
+│   │   └── token-area.js
+│   ├── completion-control
+│   │   ├── control-btns.js
+│   │   ├── pertinence-button.js
+│   │   ├── pertinence-input.js
+│   │   ├── select-category.js
+│   │   ├── select-model.js
+│   │   └── select-pertinence.js
+│   └── system_prompt_settings
+│       ├── category
+│       │   ├── categories-list.js
+│       │   └── new-category.js
+│       ├── improve-sys-prompt
+│       │   ├── improve-sys-prompt.hook.js
+│       │   ├── improve-sys-prompt.js
+│       │   └── meta-suggestions.js
+│       ├── syste-prompt-settings.hook.js
+│       ├── system-prompt
+│       │   ├── new-system-prompt.js
+│       │   └── system-prompts-list.js
+│       └── system-prompt-settings.js
+├── hooks
+│   └── useCompletion.js
+├── public
+├── testdb.js
+├── tests.db
+└── tree.txt
+
+21 directories, 36 files

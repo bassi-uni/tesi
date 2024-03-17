@@ -15,6 +15,7 @@
     "@nextui-org/react": "^2.2.9",
     "ai": "^2.2.36",
     "better-sqlite3": "^9.4.3",
+    "chromadb": "^1.8.1",
     "framer-motion": "^11.0.5",
     "langchain": "^0.1.21",
     "langchain-gpt4all": "^0.0.74",
