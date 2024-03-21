@@ -26,7 +26,7 @@ const getCritiqueAndInstructions = (thatString) => {
 
 
 
-const useImproveSystemPrompt = ({question, answer, promptID}) => {
+const useImproveSystemPrompt = ({messages, promptID}) => {
     const [phase, setPhase] = useState(0);
     const [suggestions, setSuggestions] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -42,8 +42,8 @@ const useImproveSystemPrompt = ({question, answer, promptID}) => {
         }
 
         setPhase(2);
-        console.log({question,answer})
-        fetchStreamData("api/meta-prompting", {question, answer, promptID, suggestions: userSuggestions} ,
+        console.log({messages})
+        fetchStreamData("api/meta-prompting", {messages:messages.map(({human,ai,timer}) => ({human,ai})), promptID, suggestions: userSuggestions} ,
 
             (entireResponse) => {
                 console.log({entireResponse})
@@ -57,7 +57,7 @@ const useImproveSystemPrompt = ({question, answer, promptID}) => {
             () => {
                 setIsLoading(false);
             }).catch(setError);
-    }, [phase, question, answer, promptID, userSuggestions])
+    }, [phase, messages, promptID, userSuggestions])
 
 
     const {critique, instruction} = getCritiqueAndInstructions(suggestions);
@@ -71,9 +71,9 @@ const useImproveSystemPrompt = ({question, answer, promptID}) => {
             <Textarea  value={userSuggestions} onValueChange={setUserSuggestions} placeholder="e.g.: Assistaint should be more..."/>
             <Button color="primary" onPress={nextPhaseHandler}>Next</Button>
         </>,
-        <MetaSuggestions key={2} question={question} answer={answer} critique={critique} instruction={instruction} />
+        <MetaSuggestions key={2} messages={messages} critique={critique} instruction={instruction} />
 
-    ], [nextPhaseHandler, userSuggestions, question, answer, critique, instruction]);
+    ], [nextPhaseHandler, userSuggestions, messages, critique, instruction]);
 
     
     return {phasesComponents, phase, setPhase, suggestions, isLoading, error, nextPhaseHandler, getCritiqueAndInstructions};

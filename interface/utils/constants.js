@@ -7,12 +7,24 @@ GPT4 Correct Assistant:
     
     `,
         TEMPLATE_FN_HISTORY: (sp)=> `GPT4 Correct System: ${sp}<|end_of_turn|>
+        ### Relevant pieces of previous conversation:
         {history}
+        ###
         GPT4 Correct User: {input}<|end_of_turn|>
         GPT4 Correct Assistant:
 `,
-        userInteractionTemplate: i => ({"GPT4 Correct User:" : `${i}<|end_of_turn|>`}),
-        AIInteractionTemplate: i => ({"GPT4 Correct Assistant:" : `${i}<|end_of_turn|>`})
+        userInteractionTemplate: i => {
+            console.log({human: i})
+            return {
+                "GPT4 Correct User": `${i}<|end_of_turn|>`
+            }
+        },
+        AIInteractionTemplate: i => {
+            console.log({ai:i})
+            return {
+                "GPT4 Correct Assistant": `${i}<|end_of_turn|>`
+            }
+        }
 
     },
     LLAMA: 
@@ -44,28 +56,25 @@ ${sp}
 Here is pertinent information from the previous conversation that you can use:
 {history}.
 {input}`,
+        userInteractionTemplate: i => ({"User" : `${i}`}),
+        AIInteractionTemplate: i => ({"CodeLlama" : `${i}`})
     },
     MISTRAL: {
         name: "mistral:latest",  
         TEMPLATE_FN : (sp)=> `<s>[INST] ${sp} [/INST]</s>
 [INST] {input} [/INST]
     `,
-        TEMPLATE_FN_HISTORY: (sp)=> `<s>[INST] ${sp}. 
-Relevant pieces of previous conversation:
+        TEMPLATE_FN_HISTORY: (sp)=> `<s>[INST] ${sp}
+### Relevant pieces of previous conversation:
 {history}
-[/INST]</s>
+### 
+</s>
 [INST] {input} [/INST]
     `,
-        userInteractionTemplate: i => ({"" : `[INST] ${i} [/INST]`}),
-        AIInteractionTemplate: i => ({"" : `[INST] ${i} [/INST]`})
+        userInteractionTemplate: i => ({"Human" : `${i} [/INST]`}),
+        AIInteractionTemplate: i => ({"AI" : `${i}`})
     },
-
-    GEMMA: {
-        name: "gemma:7b",
-        TEMPLATE_FN: (sp) => `<start_of_turn>user
-${sp}. {input}<end_of_turn>
-<start_of_turn>model`
-    }
+//<s>[INST] ${sp} Relevant pieces of previous conversation: ${i} [/INST] ${ai}</s>
 }
 
 
@@ -135,3 +144,5 @@ export const prompts = {
 
 
 }
+
+export const CHROMA_COLLECTION = "testchat";

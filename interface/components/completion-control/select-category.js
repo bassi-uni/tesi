@@ -1,7 +1,7 @@
 import {Select, SelectItem} from "@nextui-org/react";
 
 const SelectCategory = ({categories, selectedPromptID, handleSelectionChange,isDisabled}) => {
-    console.log({selectedPromptID})
+
     return (
         <Select
             items={categories}
@@ -17,7 +17,7 @@ const SelectCategory = ({categories, selectedPromptID, handleSelectionChange,isD
                         base: "text-black",
                         selected: "text-black",
                         wrapper: "text-black"
-                    }} >
+                    }} textValue={c.name}>
                         <p className={"text-black"}>{c.name}</p>
                     </SelectItem>
                 )}

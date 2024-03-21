@@ -1,4 +1,4 @@
-import {getCurrentSystemPrompt} from "@/utils/dbutils";
+import {getCurrentSystemPrompt} from "@/utils/dbutils2";
 import {PromptTemplate} from "@langchain/core/prompts";
 import {Ollama} from "@langchain/community/llms/ollama";
 import {models, prompts} from "@/utils/constants";
@@ -8,16 +8,22 @@ import { StreamingTextResponse } from "ai";
 
 const meta_template = prompts.META_PROMPT;
 
-const getStructuredChatHistory = ({question, answer}) => `
-    User: ${question}
-    AI: ${answer}
-    `
+const getStructuredChatHistory = ({messages}) => {
+    let string = '';
+    for(const message of messages){
+        string += `
+User: ${message.human}
+AI: ${message.ai}
+`
+    }
+    return string;
+}
 
 
-export const adjustPrompt = async ({question, answer, promptID, suggestions}) => {
+export const adjustPrompt = async ({messages, promptID, suggestions}) => {
     const sys_prompt = getCurrentSystemPrompt({promptID});
     const meta_prompt = PromptTemplate.fromTemplate(meta_template);
-    const structured_chat_history = getStructuredChatHistory({question, answer});
+    const structured_chat_history = getStructuredChatHistory({messages});
     
     const sanitazed_suggestions = suggestions.trim().length === 0 ? "No suggestions" : suggestions;
 

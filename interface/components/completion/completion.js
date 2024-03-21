@@ -21,7 +21,6 @@ const CompletionTest = ({
                             selectedModel,
                             setSelectedModel,
                             isLoading,
-                            completion,
                             setPertinence,
                             pertinenceLabel,
                             sliderEnabled,
@@ -29,7 +28,10 @@ const CompletionTest = ({
                             handleNextQuestionClick,
                             pertinence,
                             models,
-                            setCompletion
+                            messages,
+                            setMessages,
+                            setEnablePertinence,
+                            handleSendPertinence
 }) => {
 
 
@@ -49,19 +51,19 @@ const CompletionTest = ({
                     With Translation
                 </Switch>
 
-                <SelectPertinence
-                    completion={completion}
+                {<SelectPertinence
                     setPertinence={setPertinence}
                     pertinenceLabel={pertinenceLabel}
                     isLoading={isLoading}
                     sliderEnabled={sliderEnabled}
-                    onOpen={onOpen}/>
-                <TokenArea isLoading={isLoading} completion={completion} error={error} />
+                    onOpen={onOpen}/>}
+                <TokenArea isLoading={isLoading} error={error} messages={messages} />
             </div>
-            <ControlButtons handleNextQuestionClick={handleNextQuestionClick} pertinence={pertinence} retryVisible={completion.trim().length>0 && !isLoading} onRetryClick={()=>{
-                setCompletion("");
+            <ControlButtons handleNextQuestionClick={handleNextQuestionClick} isLoading={isLoading} retryVisible={true} onRetryClick={()=>{
+                setMessages([])
+                setEnablePertinence(false)
                 setPertinence(-1)
-            }} />
+            }} pertinence={pertinence} handleSendPertinence={handleSendPertinence}/>
         </main>
     )
 }

@@ -10,7 +10,11 @@ const usePromptCreation = ({ fetchedCategories, fetchedAvailablePrompts}) => {
     const [availablePrompts, setAvailablePrompts] = useState([...fetchedAvailablePrompts]);
     const [isPending, startTransition] = useTransition();
 
-    const formAction = newPromptServerAction.bind(null,categories[selectedCategoryIdx]);
+    const selectedCategory = categories[selectedCategoryIdx]
+
+    console.log({availablePrompts})
+
+    const formAction = newPromptServerAction.bind(null,selectedCategory);
 
     const handleNewCategory = category => {
         setCategories(prev => [...prev, {name: category}])
@@ -29,7 +33,7 @@ const usePromptCreation = ({ fetchedCategories, fetchedAvailablePrompts}) => {
 
     }
 
-    const filteredPrompts = availablePrompts.filter(p => p.categoryID === categories[selectedCategoryIdx]?.ID);
+    const filteredPrompts = availablePrompts.filter(p => p.UCID === categories[selectedCategoryIdx]?.ID);
 
     return {
         prompt,

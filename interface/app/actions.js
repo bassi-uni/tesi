@@ -1,7 +1,7 @@
 
 "use server"
 import { redirect } from 'next/navigation'
-import {deletePromptByID} from "@/utils/dbutils";
+import {deletePromptByID} from "@/utils/dbutils2";
 export const newPromptServerAction = async (selectedCategory, formData) => {
 
     console.log({formData, selectedCategory})

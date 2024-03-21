@@ -1,12 +1,11 @@
 'use client'
 
-import useCompletion from "@/hooks/useCompletion";
 import {useDisclosure} from "@nextui-org/react";
 import ImproveSysPrompt from "@/components/system_prompt_settings/improve-sys-prompt/improve-sys-prompt";
 import CompletionTest from "@/components/completion/completion";
+import useChat from "@/hooks/useChat";
 
-
-export default function Answer({categories}) {
+export default function AnswerPageV2({categories}) {
 
 
 
@@ -15,7 +14,7 @@ export default function Answer({categories}) {
     const {
         input,
         setInput,
-        completion,
+        messages,
         isLoading,
         error,
         handleSubmit,
@@ -32,17 +31,18 @@ export default function Answer({categories}) {
         pertinence,
         setPertinence,
         handleNextQuestionClick,
-        setCompletion
-    
-    } = useCompletion({categories, onOpen});
+        setMessages,
+        setEnablePertinence,
+        handleSendPertinence
+
+    } = useChat({categories, onOpen});
 
     return (
         <>
             <div className={`min-w-[100vw] min-h-[100vh] flex flex-col items-center justify-center bg-gray-200 text-black font-DMSans py-10`}>
-                {isOpen && <ImproveSysPrompt isOpen={isOpen} onOpenChange={onOpenChange} question={input} answer={completion} promptID={selectedPromptID}/>}
+                {isOpen && <ImproveSysPrompt isOpen={isOpen} onOpenChange={onOpenChange} messages={messages} promptID={selectedPromptID}/>}
                 <CompletionTest
                     pertinence={pertinence}
-                    completion={completion}
                     setPertinence={setPertinence}
                     handleSelectionChange={handleCategoryChange}
                     selectedPromptID={selectedPromptID}
@@ -62,7 +62,10 @@ export default function Answer({categories}) {
                     onOpen={onOpen}
                     handleNextQuestionClick={handleNextQuestionClick}
                     models={models}
-                    setCompletion={setCompletion}
+                    messages={messages}
+                    setMessages={setMessages}
+                    setEnablePertinence={setEnablePertinence}
+                    handleSendPertinence={handleSendPertinence}
                 />
             </div>
         </>
