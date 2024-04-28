@@ -5,23 +5,24 @@ import {GoDependabot} from "react-icons/go";
 import { FaRegUserCircle } from "react-icons/fa";
 
 const MetaSuggestions = ({messages, instruction, critique}) => {
+    console.log({messages})
     return(
         <>
-            <h1>Messages</h1>
+            <h1 className="text-2xl text-primary">Messages</h1>
             <div className={"flex flex-col gap-6"}>
-                {messages.map((message, index) => {
+                {messages.map(({timer,...message}, index) => {
                     const entries = Object.entries(message);
                     return entries.map(([key, value]) => (
-                        <div key={index} className={"flex gap-3"}>
-                            {key === "human" && <FaRegUserCircle />}
-                            {key === "ai" && <GoDependabot />}
+                        <div key={index} className={"flex gap-3 "}>
+                            {key === "human" && <FaRegUserCircle className={"text-2xl"} />}
+                            {key === "ai" && <GoDependabot className={"text-2xl"} />}
                             <p>{value}</p>
                         </div>
                     ))
 
                 })}
             </div>
-            <label className="text-2xl text-primary" >Suggestions</label>
+            <label className="text-2xl text-primary">Suggestions</label>
     
             <label className="font-AnonymusPro text-primary font-bold">Critique</label>
             <p>{critique}</p>

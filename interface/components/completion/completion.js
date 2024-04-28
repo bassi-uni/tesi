@@ -4,7 +4,7 @@ import SelectCategory from "@/components/completion-control/select-category";
 import SelectModel from "@/components/completion-control/select-model";
 import {Switch} from "@nextui-org/react";
 import SelectPertinence from "@/components/completion-control/select-pertinence";
-import TokenArea from "@/components/completion/token-area";
+import TokenArea from "@/components/token-area/token-area";
 import ControlButtons from "@/components/completion-control/control-btns";
 
 const CompletionTest = ({
@@ -20,18 +20,12 @@ const CompletionTest = ({
                             categories,
                             selectedModel,
                             setSelectedModel,
-                            isLoading,
-                            setPertinence,
-                            pertinenceLabel,
-                            sliderEnabled,
-                            onOpen,
                             handleNextQuestionClick,
-                            pertinence,
                             models,
                             messages,
-                            setMessages,
-                            setEnablePertinence,
-                            handleSendPertinence
+                            reset,
+                            selectedCategoryId,
+                            onMetaPromptClick
 }) => {
 
 
@@ -44,26 +38,27 @@ const CompletionTest = ({
 
                 {error && <p className={"text-danger"}>Woops, something went wrong, please try again</p>}
 
-                <SelectCategory handleSelectionChange={handleSelectionChange} selectedPromptID={selectedPromptID} categories={categories} isDisabled={changeOptionsDisabled}/>
+                <SelectCategory
+                    handleSelectionChange={handleSelectionChange}
+                    selectedPromptID={selectedPromptID}
+                    categories={categories}
+                    isDisabled={changeOptionsDisabled}
+                    selectedCategoryId={selectedCategoryId}
+                />
 
                 <SelectModel setSelectedModel={setSelectedModel} selectedModel={selectedModel} models={models} isDisabled={changeOptionsDisabled}/>
                 <Switch defaultSelected={false} isSelected={withTranslation} onValueChange={setWithTranslation} isDisabled={changeOptionsDisabled}>
                     With Translation
                 </Switch>
 
-                {<SelectPertinence
-                    setPertinence={setPertinence}
-                    pertinenceLabel={pertinenceLabel}
-                    isLoading={isLoading}
-                    sliderEnabled={sliderEnabled}
-                    onOpen={onOpen}/>}
-                <TokenArea isLoading={isLoading} error={error} messages={messages} />
+                <TokenArea error={error} messages={messages} />
             </div>
-            <ControlButtons handleNextQuestionClick={handleNextQuestionClick} isLoading={isLoading} retryVisible={true} onRetryClick={()=>{
-                setMessages([])
-                setEnablePertinence(false)
-                setPertinence(-1)
-            }} pertinence={pertinence} handleSendPertinence={handleSendPertinence}/>
+            <ControlButtons
+                handleNextQuestionClick={handleNextQuestionClick}
+                retryVisible={true}
+                onRetryClick={reset}
+                onMetaPromptClick={onMetaPromptClick}
+            />
         </main>
     )
 }

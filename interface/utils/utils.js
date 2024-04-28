@@ -52,3 +52,7 @@ export const copyToClipboard = (text) => {
     }
     return Promise.reject('The Clipboard API is not available.');
   };
+
+// Test 4: Functions with Multiple Arguments
+console.log("Test 4: Functions with Multiple Arguments");
+const composition = (...funcs) => (...args) => funcs.reduceRight((acc, func) => [func(...acc)], args)[0];

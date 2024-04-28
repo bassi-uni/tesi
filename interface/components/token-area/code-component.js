@@ -13,7 +13,7 @@ const CodeComponent = ({ code, language = 'javascript' }) => {
   };
 
   return (
-    <div className="bg-gray-800 text-gray-300 p-4 rounded-lg shadow-lg overflow-auto relative" style={{ position: 'relative' }}>
+    <div className="bg-gray-800p-4 rounded-lg shadow-lg overflow-auto relative" style={{ position: 'relative' }}>
       <SyntaxHighlighter language={language} style={docco}>
         {code}
       </SyntaxHighlighter>

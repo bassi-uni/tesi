@@ -12,25 +12,27 @@ export const getMemory = async ({utilModel, collectionName}) => {
         baseUrl: "http://localhost:11434", // default value
     });
 
-
-
-
     const chroma = new Chroma(embeddings, {
         collectionName
     });
 
 
-    
-    await chroma.ensureCollection();
+    try{
+        await chroma.ensureCollection();
+
+    }catch (error) {
+        console.log(error)
+    }
 
    
     const memory = new VectorStoreRetrieverMemory({
-        vectorStoreRetriever: chroma.asRetriever(1),
-        memoryKey: "history"
+        vectorStoreRetriever: chroma.asRetriever(2),
+        memoryKey: "history",
+
     })
 
     const saveToMemory =async({input, response}) => {
-        await memory.saveContext(userInteractionTemplate(input),AIInteractionTemplate(response))
+        await memory.saveContext(userInteractionTemplate(input), AIInteractionTemplate(response))
     }
 
 
@@ -52,11 +54,7 @@ export const chainCallWithMemory = async ({chain, input, memory}) => {
 
 export const deleteCollection = async ({name}) => {
     const client = new ChromaClient();
-    console.log({nameOFCollection: name});
     await client.deleteCollection({name})
-    console.log("COLLECTION DELETED")
-    console.log("COLLECTION LIST:")
     const collections = await client.listCollections();
     console.log({collections})
-
 }

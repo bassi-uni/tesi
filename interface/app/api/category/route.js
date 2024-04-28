@@ -1,4 +1,4 @@
-import {createUC, getAllUCs} from "@/utils/dbutils2";
+import {createUC, getAllUCs} from "@/utils/db-operations";
 
 export async function GET(req) {
     const searchParams = req.nextUrl.searchParams

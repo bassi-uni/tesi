@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  server:
+    image: server
+    ports:
+      - '8000:8000'
+    networks:
+      - app-network
+
+  nextjs-app:
+    depends_on:
+      - server
+    image: nextjs-app
+    container_name: nextjs_app
+    build:
+      context: . # Replace with the path to your Next.js app
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    # volumes:
+    #   - .:/app # Uncomment if you want to enable live reloading for development
+    #   - /app/node_modules # Uncomment to avoid overwriting node_modules
+    command: npm run dev
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

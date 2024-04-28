@@ -11,14 +11,14 @@ export const getAllUCs = (withActivePrompt) => {
     let stmt;
     if(withActivePrompt){
         stmt = db.prepare(`
-      SELECT useCase.*, systemPrompt.prompt, systemPrompt.ID AS promptID
-      FROM useCase INNER JOIN systemPrompt ON useCase.ID = systemPrompt.UCID
-      WHERE systemPrompt.isSelected = TRUE
+          SELECT useCase.*, systemPrompt.prompt, systemPrompt.ID AS promptID
+          FROM useCase INNER JOIN systemPrompt ON useCase.ID = systemPrompt.UCID
+          WHERE systemPrompt.isSelected = TRUE
     `);
     }else{
         stmt = db.prepare(`
             SELECT * FROM useCase
-    `);
+        `);
     }
 
     return stmt.all();
@@ -32,25 +32,17 @@ export const createUC = (name) => {
     `);
     stmt.run({name});
 }
-export const newSystemPrompt = (prompt, useCase) => {
+export const newSystemPrompt = (prompt, useCase, keyFeatures) => {
 
     const prompts = getAllSystemPrompts();
     const UCs = getAllUCs();
 
     console.log({prompts, UCs, prompt, useCase})
 
-    /**
-     * This block of code checks if the provided useCase exists in the UCs array.
-     * If the useCase does not exist, it prepares a SQL statement to insert a new useCase into the 'useCase' table.
-     * The new useCase has a null ID (which will be auto-incremented by the database) and the provided useCase name.
-     * After preparing the statement, it executes the statement with the provided useCase as a parameter.
-     *
-     */
     if(!UCs.some(c => c.name === useCase)){
         // Prepare SQL statement to insert a new useCase
         createUC(useCase)
     }
-
     console.log({prompt, useCase})
 
     const UCID = db.prepare(`
@@ -67,43 +59,53 @@ export const newSystemPrompt = (prompt, useCase) => {
           INSERT INTO systemPrompt VALUES (
              null,
              @prompt,
-              @isSelected,
-             @UCID      
+             @isSelected,
+             @UCID,
+             @keyFeatures     
           )
         `);
-        stmt.run({prompt, UCID,isSelected:1});
+        stmt.run({prompt, UCID,isSelected:0, keyFeatures});
     }
 
-    //set as selected the new prompt and unselect the previous one
-    const stmt = db.prepare(`
-      UPDATE systemPrompt SET isSelected = FALSE WHERE UCID = @UCID
-    `);
-    stmt.run({UCID});
-
-    const stmt2 = db.prepare(`
-      UPDATE systemPrompt SET isSelected = TRUE WHERE prompt = @prompt
-    `);
-    stmt2.run({prompt});
 
     return db.prepare(`
         SELECT ID FROM systemPrompt WHERE prompt = @prompt
     `).get({prompt}).ID;
 }
 
+function addInteraction(interaction, testID) {
+    const {human, ai, pertinence, chosenPromptID, excludedPromptIDs} = interaction;
+
+    db.prepare(`
+            INSERT INTO interaction VALUES (
+                null,
+                @testID,
+                @human,
+                @ai,
+                @pertinence,
+                @chosenPromptID,
+                @excludedPromptIDs
+            )
+        `).run({
+        testID,
+        human,
+        ai,
+        chosenPromptID,
+        pertinence,
+        excludedPromptIDs: excludedPromptIDs.join(',')
+    });
+}
+
 export const addTestRecord = ({interactions, pertinence, promptID, loadingTime, model, withTranslation}) => {
     const info = db.prepare(`
         INSERT INTO test VALUES (
             null,
-            @promptID,
-            @pertinence,
             @loadingTime,
             @model,
             @withTranslation,
             @timestamp
         )
     `).run({
-        promptID,
-        pertinence,
         loadingTime,
         model,
         withTranslation,
@@ -115,30 +117,48 @@ export const addTestRecord = ({interactions, pertinence, promptID, loadingTime, 
     console.log({testID})
 
     for (const interaction of interactions){
-
-        const interactionToString = JSON.stringify(interaction);
-
-        db.prepare(`
-            INSERT INTO interaction VALUES (
-                null,
-                @testID,
-                @interaction
-            )
-        `).run({
-            testID : info.lastInsertRowid,
-            interaction: interactionToString
-        });
+        addInteraction(interaction, testID);
     }
 }
 
 export const deletePromptByID = (promptID) => {
+    //TODO: se era isSelected, selezionare un altro prompt come isSelected
+
+    const prompt = getPromptByID({promptID});
+
+    const {isSelected } = prompt;
+
     const stmt = db.prepare(`
       DELETE FROM systemPrompt WHERE ID = @promptID
     `);
-    stmt.run({promptID});
+
+    const res = stmt.run({promptID});
+
+    if(isSelected){
+        const stmt2 = db.prepare(`
+            SELECT ID FROM systemPrompt WHERE UCID = @UCID LIMIT 1
+        `).get({UCID: prompt.UCID});
+
+        if(!stmt2){
+            return;
+        }
+
+        const newPromptID = stmt2.ID;
+        const stmt3 = db.prepare(`
+            UPDATE systemPrompt SET isSelected = TRUE WHERE ID = @newPromptID
+        `).run({newPromptID});
+    }
+    
 }
 
-export const getCurrentSystemPrompt = ({promptID}) => {
+export const setIsSelected = ({promptID, isSelected}) => {
+    console.log({promptID, isSelected})
+    const stmt = db.prepare(`
+        UPDATE systemPrompt SET isSelected = @isSelected WHERE ID = @promptID
+    `).run({promptID, isSelected:isSelected ? 1 : 0});
+}
+
+export const getPromptByID = ({promptID}) => {
 
 
     const stmt = db.prepare(`
@@ -148,3 +168,4 @@ export const getCurrentSystemPrompt = ({promptID}) => {
     const {prompt} = stmt;
     return prompt;
 }
+

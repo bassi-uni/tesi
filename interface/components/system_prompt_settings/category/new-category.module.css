@@ -1,0 +1,9 @@
+.control{
+    display:none
+}
+.container{
+    display: flex;
+}
+.container:hover > .control{
+    display: block;
+}

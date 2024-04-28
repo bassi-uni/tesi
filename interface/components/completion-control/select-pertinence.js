@@ -1,14 +1,14 @@
 import {PertinenceInput} from "@/components/completion-control/pertinence-input";
 
-const SelectPertinence = ({setPertinence, sliderEnabled, pertinenceLabel} ) => {
+const SelectPertinence = ({setPertinence, isEnabled, pertinenceLabel} ) => {
     return (
-        <div className={"flex flex-col gap-10 h-full px-10 pb-10 "}>
+        <div className={"flex flex-col gap-10 h-full pb-10 "}>
 
-            {sliderEnabled && <h1 className={"text-2xl font-bold"}>How would you rate the pertinence between question and answer?</h1>}
+            {isEnabled && <h1 className={"text-2xl font-bold"}>How would you rate the pertinence between question and answer?</h1>}
 
-                <PertinenceInput onPertinenceChange={setPertinence} isEnabled={sliderEnabled} />
+                <PertinenceInput onPertinenceChange={setPertinence} isEnabled={isEnabled} />
 
-            {sliderEnabled && pertinenceLabel}
+            {isEnabled && pertinenceLabel}
         </div>
     )
 }

@@ -1,20 +1,29 @@
-import {getAllUCs} from "@/utils/dbutils2";
-import AnswerPageV2 from "@/components/answer-page-v2";
+import {getAllUCs} from "@/utils/db-operations";
+import AnswerPage from "@/components/answer-page";
 import {CHROMA_COLLECTION} from "@/utils/constants";
 
 
-export default async function AnswerPage() {
+const transformUCS = (ucs) => ucs.reduce((acc, uc) => {
+    let ucInAcc = acc.find(u => u.ID === uc.ID);
+    if(!ucInAcc){
+        acc.push({ID: uc.ID, name: uc.name, promptIDs: [{promptID: uc.promptID, prompt: uc.prompt}]});
+    } else {
+        ucInAcc.promptIDs.push({promptID: uc.promptID , prompt: uc.prompt});
+    }
+    return acc;
+}, [])
+
+export default async function MainAnswerPage() {
     const categories = getAllUCs(true);
-    console.log({categories});
+    const ucs = transformUCS(categories);
     const res = await fetch("http://localhost:3000/api/chroma", {
-        method: "POST",
+        method: "DELETE",
         headers: {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({name: CHROMA_COLLECTION}),
         cache: "no-cache"
     })
-    console.log(res.status)
     const _ = await res.json();
-    return <AnswerPageV2 categories={categories}/>
+    return <AnswerPage categories={ucs}/>
 }

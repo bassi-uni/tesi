@@ -1,14 +1,11 @@
 import {NewCategory} from "@/components/system_prompt_settings/category/new-category";
+import Category from "@/components/system_prompt_settings/category/category";
 
 const CategoriesList = ({categories, setSelectedCategoryIdx, selectedCategoryIdx, handleNewCategory, creatingCategory, setCreatingCategory}) => {
     return (
-        <ul className="flex flex-wrap w-1/2 gap-5">
+        <ul className="flex w-2/3 gap-5">
             {categories?.map((category, index) => (
-                <li key={index}
-                    onClick={() => setSelectedCategoryIdx(index)}
-                    className={`p-2 ${index === selectedCategoryIdx ? "bg-primary text-black" : "bg-gray-700 text-white"} rounded-md hover:bg-primary hover:text-black cursor-pointer duration-150 flex items-center justify-center`}>
-                    {category.name}
-                </li>
+                    <Category key={index} name={category.name} onClick={() => setSelectedCategoryIdx(index)} isSelected={index === selectedCategoryIdx}/>
             ))}
             {creatingCategory && <NewCategory onNewCategory={handleNewCategory} />}
             <li

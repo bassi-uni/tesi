@@ -1,6 +1,6 @@
-import {Input} from "@nextui-org/react";
+import {Button, ButtonGroup, Input} from "@nextui-org/react";
 import {useState} from "react";
-
+import classes from "./new-category.module.css";
 export const NewCategory = ({onNewCategory}) => {
     const [category, setCategory] = useState("");
     const handleSubmit = e => {
@@ -22,8 +22,8 @@ export const NewCategory = ({onNewCategory}) => {
     }
 
     return (
-        <form className={"m-0 p-0 max-w-sm dark"} onSubmit={handleSubmit}>
-            <Input placeholder={"Category Name"} value={category} onValueChange={setCategory} />
-        </form>
+            <form className={"m-0 p-0 max-w-sm dark"} onSubmit={handleSubmit}>
+                <Input placeholder={"Category Name"} value={category} onValueChange={setCategory} />
+            </form>
     )
 }

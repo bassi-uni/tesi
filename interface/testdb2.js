@@ -16,6 +16,7 @@ function createDatabase() {
         prompt TEXT UNIQUE NOT NULL,
         isSelected BOOLEAN NOT NULL,
         UCID INTEGER,
+        keyFeatures TEXT,
         FOREIGN KEY (UCID) REFERENCES useCase(ID)
     )`).run();
 
@@ -23,33 +24,60 @@ function createDatabase() {
     db.prepare(`CREATE TABLE IF NOT EXISTS interaction (
         ID INTEGER PRIMARY KEY,
         testID INTEGER,
-        interaction TEXT,
-        FOREIGN KEY (testID) REFERENCES test(ID)
+        human TEXT,
+        ai TEXT,
+        pertinence INTEGER,
+        chosenPromptID INTEGER,
+        excludedPromptIDs TEXT,
+        FOREIGN KEY (testID) REFERENCES test(ID),
+        FOREIGN KEY (chosenPromptID) REFERENCES systemPrompt(ID)
     )`).run();
 
     // Test table
     db.prepare(`CREATE TABLE IF NOT EXISTS test (
         ID INTEGER PRIMARY KEY,
-        promptID INTEGER,
-        pertinence INTEGER,
         loadingTime TEXT,
         model TEXT,
         withTranslation BOOLEAN,
-        timestamp DATETIME,
-        FOREIGN KEY (promptID) REFERENCES systemPrompt(ID)
-     
+        timestamp DATETIME
     )`).run();
 
     // Close the database connection
     db.close();
 }
-
+//functions for deleting content from tables
 const deleteSystemPromptTableContent = () => {
     const db = new Database('database.db', { verbose: console.log });
     db.prepare(`DELETE FROM systemPrompt`).run();
     db.close();
 }
 
+const deleteUseCaseTableContent = () => {
+    const db = new Database('database.db', { verbose: console.log });
+    db.prepare(`DELETE FROM useCase`).run();
+    db.close();
+
+}
+
+const deleteInteractionTableContent = () => {
+    const db = new Database('database.db', { verbose: console.log });
+    db.prepare(`DELETE FROM interaction`).run();
+    db.close();
+
+}
+
+const deleteTestTableContent = () => {
+    const db = new Database('database.db', { verbose: console.log });
+    db.prepare(`DELETE FROM test`).run();
+    db.close();
+
+
+}
+
+
+
+
 // Run the function to create the database
-//createDatabase();
-deleteSystemPromptTableContent()
+//deleteInteractionTableContent();
+//deleteTestTableContent();
+//createDatabase()

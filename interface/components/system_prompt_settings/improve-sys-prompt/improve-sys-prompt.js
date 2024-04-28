@@ -12,12 +12,12 @@ import useImproveSystemPrompt from "./improve-sys-prompt.hook";
     "AI Suggestions for improvement"
   ]
 
-const SystemPromptImprovement = ({isOpen, onOpenChange, promptID, messages}) => {
+const SystemPromptImprovement = ({isOpen, onOpenChange, messages, onClose}) => {
 
-    console.log({isOpen, onOpenChange, messages, promptID})
-   const {isLoading,phase, phasesComponents } = useImproveSystemPrompt({messages, promptID});
+    console.log({isOpen, onOpenChange, messages})
+   const {isLoading,phase, phasesComponents } = useImproveSystemPrompt({messages});
 
-    return <Modal isOpen={isOpen} className="dark max-h-[500px]" onOpenChange={onOpenChange} backdrop="blur">
+    return <Modal isOpen={isOpen} className="dark max-h-[500px]" onOpenChange={onOpenChange} backdrop="blur" size={"5xl"} onClose={onClose}>
        
         <ModalContent>
             {(onClose) => (

@@ -1,4 +1,4 @@
-import {getCurrentSystemPrompt} from "@/utils/dbutils2";
+import {getPromptByID} from "@/utils/db-operations";
 import {PromptTemplate} from "@langchain/core/prompts";
 import {Ollama} from "@langchain/community/llms/ollama";
 import {models, prompts} from "@/utils/constants";
@@ -19,12 +19,9 @@ AI: ${message.ai}
     return string;
 }
 
-
-export const adjustPrompt = async ({messages, promptID, suggestions}) => {
-    const sys_prompt = getCurrentSystemPrompt({promptID});
+export const adjustPrompt = async ({messages, suggestions}) => {
     const meta_prompt = PromptTemplate.fromTemplate(meta_template);
     const structured_chat_history = getStructuredChatHistory({messages});
-    
     const sanitazed_suggestions = suggestions.trim().length === 0 ? "No suggestions" : suggestions;
 
     const model = new Ollama({
@@ -44,11 +41,8 @@ export const adjustPrompt = async ({messages, promptID, suggestions}) => {
 
     const response = await chain.stream({
         chat_history: structured_chat_history,
-        prev_instructions: sys_prompt,
         suggestions: sanitazed_suggestions
-
     })
-
     
     return new StreamingTextResponse(response);
 }

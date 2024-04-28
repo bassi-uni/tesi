@@ -26,7 +26,7 @@ const getCritiqueAndInstructions = (thatString) => {
 
 
 
-const useImproveSystemPrompt = ({messages, promptID}) => {
+const useImproveSystemPrompt = ({messages}) => {
     const [phase, setPhase] = useState(0);
     const [suggestions, setSuggestions] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -42,8 +42,8 @@ const useImproveSystemPrompt = ({messages, promptID}) => {
         }
 
         setPhase(2);
-        console.log({messages})
-        fetchStreamData("api/meta-prompting", {messages:messages.map(({human,ai,timer}) => ({human,ai})), promptID, suggestions: userSuggestions} ,
+        console.log("PHASE 2 SETTED")
+        fetchStreamData("api/meta-prompting", {messages:messages.map(({human,ai,...rest}) => ({human,ai})), suggestions: userSuggestions} ,
 
             (entireResponse) => {
                 console.log({entireResponse})
@@ -51,13 +51,15 @@ const useImproveSystemPrompt = ({messages, promptID}) => {
             },
 
             ()=> {
+                console.log("STARTING META PROMPTING STREAMING")
                 setIsLoading(true);
+
             } ,
 
             () => {
                 setIsLoading(false);
             }).catch(setError);
-    }, [phase, messages, promptID, userSuggestions])
+    }, [phase, messages, userSuggestions])
 
 
     const {critique, instruction} = getCritiqueAndInstructions(suggestions);

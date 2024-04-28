@@ -4,14 +4,13 @@ import { SlReload } from "react-icons/sl";
 import { FiSend } from "react-icons/fi";
 
 
-const ControlButtons = ({handleNextQuestionClick,retryVisible, onRetryClick, isLoading, pertinence, handleSendPertinence }) => {
+const ControlButtons = ({handleNextQuestionClick,retryVisible, onRetryClick , onMetaPromptClick}) => {
     return (
         <div className={"flex justify-center w-full gap-3"}>
-            <Button color={"primary"} onClick={handleNextQuestionClick}
-                    isDisabled={isLoading}>Valuate Chat</Button>
-            <Button><Link href={"/system_prompt"}>system prompt</Link></Button>
+            <Button color={"primary"} onClick={handleNextQuestionClick}>Valuate Chat</Button>
+            <Link href={"/system_prompt"}><Button>system prompt</Button></Link>
             {retryVisible && <Button endContent={<SlReload className={"w-3/4 h-3/4"}/>} color={"warning"} onClick={onRetryClick}>Retry</Button>}
-            {pertinence !== -1 && <Button color={"primary"} onClick={handleSendPertinence} endContent={<FiSend />}>Send Pertinence</Button>}
+            <Button onPress={onMetaPromptClick}>Meta Prompting</Button>
         </div>
     )
 }

@@ -30,6 +30,11 @@ module.exports = {
         colors: {
           primary: "#BBE2A9"
         }
+      },
+      dark:{
+        colors: {
+          primary: "#BBE2A9"
+        }
       }
     }
   })]

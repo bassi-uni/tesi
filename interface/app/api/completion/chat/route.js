@@ -6,11 +6,7 @@ import {completionWithTranslation, completionWithoutTranslation} from "@/utils/l
 
 export async function POST(req) {
     // Extract the `prompt` from the body of the request
-    let { prompt, promptID, translation, modelName,previousMessage } = await req.json();
-
-    if(!previousMessage){
-        previousMessage = null;
-    }
+    let { prompt, promptID, translation, modelName } = await req.json();
 
     console.log({promptID, modelName, translation})
     //taking the template for the desired model
@@ -29,6 +25,6 @@ export async function POST(req) {
         return await completionWithTranslation({model, promptID, prompt,promptTemplate, utilModel});
     }
 
-    return await completionWithoutTranslation({promptID, model, prompt,promptTemplate, utilModel: models[modelName], previousMessage});
+    return await completionWithoutTranslation({promptID, model, prompt,promptTemplate, utilModel: models[modelName]});
 
 }

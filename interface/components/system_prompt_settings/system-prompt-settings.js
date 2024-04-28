@@ -19,7 +19,8 @@ const SystemPromptSettings = ({categories:fetchedCategories, availablePrompts: f
         formAction,
         selectedCategoryIdx,
         setSelectedCategoryIdx,
-        isPending
+        isPending,
+        setAvailablePrompts
     } = usePromptCreation({
         fetchedCategories,
         fetchedAvailablePrompts
@@ -47,6 +48,7 @@ const SystemPromptSettings = ({categories:fetchedCategories, availablePrompts: f
                 handlePromptClick={handlePromptClick}
                 handleDeletePrompt={handleDeletePrompt}
                 isPending={isPending}
+                setAvailablePrompts={setAvailablePrompts}
             />
     </>
     )

@@ -2,7 +2,7 @@ import {BytesOutputParser, StringOutputParser} from "@langchain/core/output_pars
 import {ChatPromptTemplate, PromptTemplate} from "@langchain/core/prompts";
 import {RunnablePassthrough, RunnableSequence} from "@langchain/core/runnables";
 import {StructuredOutputParser} from "langchain/output_parsers";
-import {getCurrentSystemPrompt} from "@/utils/dbutils2";
+import {getPromptByID} from "@/utils/db-operations";
 import {StreamingTextResponse} from "ai";
 import {z} from "zod"
 import { Ollama } from "@langchain/community/llms/ollama";
@@ -53,7 +53,7 @@ function initTranslationChain(model, promptTemplate) {
 
 function initResponseChain(promptID, model, promptTemplate) {
     //get the promptWithThatId from database
-    const system_prompt = getCurrentSystemPrompt({promptID});
+    const system_prompt = getPromptByID({promptID});
 
 
     const template = promptTemplate(system_prompt);
@@ -92,10 +92,6 @@ export async function completionWithTranslation({model, promptID, prompt,promptT
             input: translationChain,
             original_input: new RunnablePassthrough()
         },
-        (res) => {
-            console.log({res});
-            return res;
-        },
 
         {
             input: ({input}) => input.translation,
@@ -104,7 +100,7 @@ export async function completionWithTranslation({model, promptID, prompt,promptT
             }),
             history: async ({input}) => {
                 const {translation} = input;
-                const {saveToMemory,memory} = await getMemory({
+                const {memory} = await getMemory({
                     utilModel: utilModel,
                     collectionName: CHROMA_COLLECTION
                 })
@@ -120,20 +116,8 @@ export async function completionWithTranslation({model, promptID, prompt,promptT
             language: ({original_input}) => {
                 return original_input.recognized_language;
             },
-            responseChainInput: new RunnablePassthrough()
+            //responseChainInput: new RunnablePassthrough()
 
-        },
-        async ({input,responseChainInput,...rest}) => {
-            const {input: oldInput} = responseChainInput;
-            const {saveToMemory,memory} = await getMemory({
-                utilModel: utilModel,
-                collectionName: CHROMA_COLLECTION
-            })
-            await saveToMemory({
-                input: oldInput,
-                response: input
-            })
-            return {language: rest.language, input};
         },
         retranslationChain,
     ]);
@@ -149,22 +133,15 @@ export async function completionWithTranslation({model, promptID, prompt,promptT
 
 export async function completionWithoutTranslation({promptID, model, prompt,promptTemplate, utilModel, previousMessage}) {
     //get the promptWithThatId from database
-    const system_prompt = getCurrentSystemPrompt({promptID});
-    const {memory,saveToMemory} = await getMemory({
+    const system_prompt = getPromptByID({promptID});
+
+    console.log({system_prompt})
+
+    const {memory} = await getMemory({
         utilModel,
         collectionName: CHROMA_COLLECTION
     })
 
-    console.log({previousMessage})
-
-
-
-    if(previousMessage){
-        await saveToMemory({
-            input: previousMessage.human,
-            response: previousMessage.ai
-        })
-    }
 
 
     //get the full system prompt injecting the current system_prompt directives into template
